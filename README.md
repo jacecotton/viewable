@@ -4,6 +4,7 @@ Planning a lightweight class mixin for creating custom elements.
 Minimalistic example:
 ```js
 /* click-counter.js */
+import {Viewable, state, action, effect} from "viewable";
 import view from "./click-counter.view.js";
 
 export default class ClickCounter extends Viewable(HTMLElement) {
@@ -76,6 +77,8 @@ Beyond these guiding principles, we're also aiming to architect this microlibrar
 * DOM Parts API
 * Signals
 * Declarative Custom Elements
+
+Partly to this end, we are trying to avoid creating a framework, but instead a **progressive enhancement** over the existing ergonomics and conventions of the web standard. All decorated class members are still meaningful and operable irrespective of what `Viewable` is up to!
 
 ----
 <small>1. And, in rare cases, invalidate.</small>
