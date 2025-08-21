@@ -52,7 +52,7 @@ export default ({label, count}, {increment}) => html`
 ```
 
 ```js
-/* click-counter.define.js */
+/* click-counter.register.js */
 import ClickCounter from "./click-counter.js";
 customElements.define("click-counter", ClickCounter);
 ```
