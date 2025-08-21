@@ -45,7 +45,7 @@ export default class ClickCounter extends Viewable(HTMLElement) {
 /* click-counter.view.js */
 import {html} from "your-favorite-renderer"; // must return TemplateResult
 
-// No `this`!
+// No `this`. No hooks.
 export default ({label, count}, {increment}) => html`
   <button @click="${increment}">${label}</button>
   <p>(Button clicked ${count} times)</p>
