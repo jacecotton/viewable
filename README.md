@@ -80,7 +80,7 @@ Beyond these guiding principles, we're also aiming to architect this microlibrar
 
 Partly to this end, we are trying to avoid creating a framework, but instead a **progressive enhancement** over the existing ergonomics and conventions of the web standard:
 * All decorated class members are still meaningful and operable irrespective of what `Viewable` is up to!
-* The view function can be repurposed and reused by any reactive component system—or even applied naively with `innerHTML`.
+* The view function can be repurposed and reused by any reactive component system—or even applied naively with `innerHTML`. The `attachView` method just so happens to be our current way of wiring it up.
 
 ----
 <small>1. And, in rare cases, invalidate.</small>
