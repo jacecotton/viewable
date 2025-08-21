@@ -45,7 +45,7 @@ export default class ClickCounter extends Viewable(HTMLElement) {
 /* click-counter.view.js */
 import {html} from "your-favorite-renderer"; // must return TemplateResult
 
-// No `this`. No hooks.
+// No `this`. No hooks. No opinions or insight.
 export default ({label, count}, {increment}) => html`
   <button @click="${increment}">${label}</button>
   <p>(Button clicked ${count} times)</p>
@@ -68,19 +68,22 @@ Motivation arises from recognizing that, like Lit, custom element logic and beha
 
 Attempting to get the best of both worlds, that is the exact division we're embracing with a small set of semantic decorators for the class-side, and an imperative way to register<sup>1</sup> a view function that automatically and exclusively has access to what it needs (a state snapshot and auto-bound action methods). This results in an even smaller API footprint, and surface area for bugs, than *either* Lit or React, while maintaining relative capability parity—within the following core confines:
 
-1. Eliminating foot-guns only necessary in React or Lit's respective all-or-nothing approaches (React's hook fatigue, Lit's `this` in templates, etc.)
+1. Eliminating foot-guns only necessary in React or Lit's respective all-or-nothing approaches (React's hook lean, Lit's `this` in templates, etc.)
 2. More opinionated philosophy resulting from the enforced separation with seamlessly orchestrated integration.
-3. Staying "close to the metal" and foregoing conveniences that are pure sugar, including only those that provide **both** ergonomic functionality *and* architectural safeguards.
+3. Staying "close to the metal" and foregoing conveniences that are pure sugar—standard for inclusion is only those that provide **both** ergonomic functionality *and* architectural safeguards.
 4. Maintaining compatibility and interoperability with multiple renderers so additional production-necessary features (directives, controllers, etc.) can be brought in as needed.
 
-Beyond these guiding principles, we're also aiming to architect this microlibrary in as future-proof a way as possible, influenced in our decisions by the following on-the-horizon features:
-* DOM Parts API
+Beyond these guiding principles, we're also aiming to architect this microlibrary in as future-proof a way as possible, influenced in our decisions by the following on-the-horizon APIs:
+* DOM Parts
 * Signals
 * Declarative Custom Elements
+Ideally, swapping out our current implementations with these APIs will be hidden implementation details that should have no effect on the exposed API.
 
 Partly to this end, we are trying to avoid creating a framework, but instead a **progressive enhancement** over the existing ergonomics and conventions of the web standard:
-* All decorated class members are still meaningful and operable irrespective of what `Viewable` is up to!
+* All decorated class members are still meaningful and operable irrespective of `Viewable`.
 * The view function can be repurposed and reused by any reactive component system—or even applied naively with `innerHTML`. The `attachView` method just so happens to be our current way of wiring it up.
+
+The highest aspiration of this project is an evolution from a microlibrary to a mere style guide.
 
 ----
 <small>1. And, in rare cases, invalidate.</small>
