@@ -78,7 +78,9 @@ Beyond these guiding principles, we're also aiming to architect this microlibrar
 * Signals
 * Declarative Custom Elements
 
-Partly to this end, we are trying to avoid creating a framework, but instead a **progressive enhancement** over the existing ergonomics and conventions of the web standard. All decorated class members are still meaningful and operable irrespective of what `Viewable` is up to!
+Partly to this end, we are trying to avoid creating a framework, but instead a **progressive enhancement** over the existing ergonomics and conventions of the web standard:
+* All decorated class members are still meaningful and operable irrespective of what `Viewable` is up to!
+* The view function can be repurposed and reused by any reactive component system—or even applied naively with `innerHTML`.
 
 ----
 <small>1. And, in rare cases, invalidate.</small>
