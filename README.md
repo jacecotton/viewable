@@ -94,6 +94,7 @@ The highest aspiration of this project is an evolution from a microlibrary to a 
 <small>1. And, in rare cases, invalidate.</small>
 
 ## `attachView(view)`
+* `attachShadow` is required
 
 ## `@state`
 * transform, equals
@@ -103,12 +104,18 @@ The highest aspiration of this project is an evolution from a microlibrary to a 
 
 ## `@effect(deps[])`
 
-## `@memo`
+## `@memo(deps[])`
 
 ## `invalidateView`
 
 ## `isMounted`
 
 ## What about...? (React)
+Most divergences from React, and why we can shed so much of its API footprint, derives from the fact that logic and side effects are object-oriented and imperative in a class-based custom element workflow.
+
+* No `useRef`—class fields are non-rendering and persist across renders by default.
+* No `useCallback`—class method identity is stable across renders.
+* No `useContext`—use Lit's directives.
+* No custom hooks—use Lit's directives.
 
 ## What about...? (Lit)
