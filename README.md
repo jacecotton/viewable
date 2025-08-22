@@ -93,15 +93,15 @@ The highest aspiration of this project is an evolution from a microlibrary to a 
 ----
 <small>1. And, in rare cases, invalidate.</small>
 
-## `attachView`
+## `attachView(view)`
 
 ## `@state`
 * transform, equals
 * custom setters (don't use on getters unless you're memoizing—see [`@memo`](#memo))
 
-## `action`
+## `@action`
 
-## `effect`
+## `@effect(deps[])`
 
 ## `@memo`
 
