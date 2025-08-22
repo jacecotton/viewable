@@ -1,6 +1,8 @@
 ## Viewable
 Planning a lightweight class mixin for creating custom elements.
 
+Capitalizing on the arrival of native decorators and some motion on ES signals, DOM parts, and declarative custom elements.
+
 Minimalistic example:
 ```js
 /* click-counter.js */
