@@ -123,3 +123,7 @@ Most divergences from React, and why we can shed so much of its API footprint, d
 * No JSX—use tagged template literals.
 
 ## What about...? (Lit)
+
+## Known and open issues
+* Typing complexity—how does the view know prop types?
+* Testing—modularizing views and decorated fields make testing theoretically easy, but actual utilities need to be developed.
