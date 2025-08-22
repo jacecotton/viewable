@@ -113,9 +113,12 @@ The highest aspiration of this project is an evolution from a microlibrary to a 
 ## What about...? (React)
 Most divergences from React, and why we can shed so much of its API footprint, derives from the fact that logic and side effects are object-oriented and imperative in a class-based custom element workflow.
 
-* No `useRef`—class fields are non-rendering and persist across renders by default.
+* No `useRef`
+    * Class fields are non-rendering and persist across renders by default.
+    * Get references to rendered nodes with `this.shadowRoot.querySelector`.
 * No `useCallback`—class method identity is stable across renders.
 * No `useContext`—use Lit's directives.
 * No custom hooks—use Lit's directives.
+* No `useMemo`—use `@memo`.
 
 ## What about...? (Lit)
