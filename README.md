@@ -22,6 +22,10 @@ export default class ClickCounter extends Viewable(HTMLElement) {
     this.attachView(view);
   }
 
+  connectedCallback() {
+    // Post-render imperatives.
+  }
+
   // Additional view-accessible reactive state (non-attribute-reflected).
   // Technically mutable from the outside, but roughly quivalent to Lit's
   // internal "state".
@@ -43,7 +47,7 @@ export default class ClickCounter extends Viewable(HTMLElement) {
 
 ```js
 /* click-counter.view.js */
-import {html} from "your-favorite-renderer"; // must return TemplateResult
+import {html} from "your-favorite-parser"; // must return TemplateResult
 
 // No `this`. No hooks. No opinions or insight.
 export default ({label, count}, {increment}) => html`
@@ -74,16 +78,37 @@ Attempting to get the best of both worlds, that is the exact division we're embr
 4. Maintaining compatibility and interoperability with multiple renderers so additional production-necessary features (directives, controllers, etc.) can be brought in as needed.
 
 Beyond these guiding principles, we're also aiming to architect this microlibrary in as future-proof a way as possible, influenced in our decisions by the following on-the-horizon APIs:
-* DOM Parts
-* Signals
+* DOM Parts (future implementation behind template parser?)
+* Signals (future implementation behind `@state` and `@effect`?)
 * Declarative Custom Elements
+
 Ideally, swapping out our current implementations with these APIs will be hidden implementation details that should have no effect on the exposed API.
 
 Partly to this end, we are trying to avoid creating a framework, but instead a **progressive enhancement** over the existing ergonomics and conventions of the web standard:
-* All decorated class members are still meaningful and operable irrespective of `Viewable`.
+* All decorated class members are still meaningful and operable irrespective of `Viewable` or the decorators.
 * The view function can be repurposed and reused by any reactive component system—or even applied naively with `innerHTML`. The `attachView` method just so happens to be our current way of wiring it up.
 
 The highest aspiration of this project is an evolution from a microlibrary to a mere style guide.
 
 ----
 <small>1. And, in rare cases, invalidate.</small>
+
+## `attachView`
+
+## `@state`
+* transform, equals
+* custom setters (don't use on getters unless you're memoizing—see [`@memo`](#memo))
+
+## `action`
+
+## `effect`
+
+## `@memo`
+
+## `invalidateView`
+
+## `isMounted`
+
+## What about...? (React)
+
+## What about...? (Lit)
