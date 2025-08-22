@@ -120,5 +120,6 @@ Most divergences from React, and why we can shed so much of its API footprint, d
 * No `useContext`—use Lit's directives.
 * No custom hooks—use Lit's directives.
 * No `useMemo`—use `@memo`.
+* No JSX—use tagged template literals.
 
 ## What about...? (Lit)
