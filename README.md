@@ -70,7 +70,7 @@ Usage:
 <click-counter label="Click me!"></click-counter>
 ```
 
-Motivation arises from recognizing that, like Lit, custom element logic and behavior should be imperative, object-oriented, and side-effectful. But like React, you can eliminate several classes of bugs by having your declarative rendering function be pure and stateless.
+Motivation arises from recognizing that, like Lit, custom element imperative logic and behavior, especially side-effectful, should be object-oriented (part of the element specification). But like React, you can eliminate several classes of bugs by having your rendering function be declarative, pure, and ideally, stateless.
 
 Attempting to get the best of both worlds, that is the exact division we're embracing with a small set of semantic decorators for the class-side, and an imperative way to register<sup>1</sup> a view function that automatically and exclusively has access to what it needs (a state snapshot and auto-bound action methods). This results in an even smaller API footprint, and surface area for bugs, than *either* Lit or React, while maintaining relative capability parity—within the following core confines:
 
