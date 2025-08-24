@@ -156,7 +156,7 @@ Most divergences from Lit derive from the fact that the lifecycle is handled eit
 
 We've tweaked other APIs while keeping them effectively the same:
 
-* `invalidateView` instead of `requestUpdate`—Viewable doesn't let you directly request an update, *per se*. Instead, you declare the view as stale, and the fact that it updates in response is implicit. We consider this more declarative and semantic.
+* `invalidateView` instead of `requestUpdate`—Viewable doesn't let you explicit request an update *per se*. Instead, you declare the view as stale, and the fact that it updates in response is implicit. This is because we don't *really* want you imperatively updating the view and running effects. It should only be done for view resynchronization with the environment (observers, events, etc.)
 
 Open questions:
 * `updateComplete` promise? Potentially useful for outside observers. Also consider dispatching events.
