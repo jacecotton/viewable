@@ -119,10 +119,23 @@ Most divergences from React, and why we can shed so much of its API footprint, d
     * Class fields are non-rendering and persist across renders by default.
     * Get references to rendered nodes with `this.shadowRoot.querySelector`.
 * No `useCallback`—class method identity is stable across renders.
-* No `useContext`—use Lit's context directive or pass props.
-* No custom hooks—use Lit's directives for reusable stateful logic.
+* No `useContext`—not needed class-side (just use global state), and for view-side, use Lit's directives to wire up shared context
+* No `useLayoutEffect`—`@effect` methods are post-render as-is
+* No custom hooks—use Lit's directives for reusable stateful logic
+* No performance hooks because custom elements leverage the broader browser ecosystem—no `useDeferredValue`, `useTransition`, `useOptimistic` etc.
+
+We provide alternatives or recommend vanilla solutions for the following:
+
+* No `useState`—use `@state` (avoids stale closure issues and surfaces state as regular, r/w-able properties of the element)
+* No `useEffect`—use `@effect` (stable identity, cleaner source of deps, surface effects as regular methods)
 * No `useMemo`—use `@memo`.
 * No JSX—use tagged template literals.
+* No portals—custom elements use `slot`.
+
+Open questions:
+
+* `useSyncExternalStore`—how do we treat external stores as reactive state? Technically we could set up subscriptions, observers, etc. in connectedCallback/constructor/etc., and then map updates to `@action` methods which update a piece of state. But this isn't very ergonomic. `@subscribe` decorator?
+* `@reducer`?
 
 ## What about...? (Lit)
 Most divergences from Lit derive from the fact that the lifecycle is handled either more declaratively and semantically (in the case of decorator-based solutions), or idiomatically (where Viewable doesn't have an opinion and doesn't need to provide a hook since doing so would just be sugar).
@@ -148,6 +161,7 @@ Open questions:
 ## Known and open issues
 * Typing complexity—how does the view know prop types?
 * Testing—modularizing views and decorated fields make testing theoretically easy, but actual utilities need to be developed.
+* SSR support—need to research
 
 ## Won't solve
 * Styles—no opinion (recommendation: constructed stylesheets).
