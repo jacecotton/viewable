@@ -137,6 +137,9 @@ Open questions:
 * `useSyncExternalStore`—how do we treat external stores as reactive state? Technically we could set up subscriptions, observers, etc. in connectedCallback/constructor/etc., and then map updates to `@action` methods which update a piece of state. But this isn't very ergonomic. `@subscribe` decorator?
 * `@reducer`?
 
+On the horizon:
+* Scheduler API can solve for async effects (instead of `setTimeout`).
+
 ## What about...? (Lit)
 Most divergences from Lit derive from the fact that the lifecycle is handled either more declaratively and semantically (in the case of decorator-based solutions), or idiomatically (where Viewable doesn't have an opinion and doesn't need to provide a hook since doing so would just be sugar).
 
