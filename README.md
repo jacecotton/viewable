@@ -99,7 +99,7 @@ The highest aspiration of this project is an evolution from a microlibrary to a 
 * `attachShadow` is required
 
 ## `@state`
-* transform, equals, should
+* transform, equals, should, subscribe (+ selector)
 * custom setters (don't use on getters unless you're memoizing—see [`@memo`](#memo))
 
 ## `@action`
@@ -129,12 +129,12 @@ We provide alternatives or recommend vanilla solutions for the following:
 * No `useState`—use `@state` (avoids stale closure issues and surfaces state as regular, r/w-able properties of the element)
 * No `useEffect`—use `@effect` for synchronous effects (stable identity, cleaner source of deps, surface effects as regular methods). Use `setTimeout(cb, 0)` inside effect method for async effects.
 * No `useMemo`—use `@memo`.
+* No `useSyncExternalStore`—use `@state({subscribe})`
 * No JSX—use tagged template literals.
 * No portals—custom elements use `slot`.
 
 Open questions:
 
-* `useSyncExternalStore`—how do we treat external stores as reactive state? Technically we could set up subscriptions, observers, etc. in connectedCallback/constructor/etc., and then map updates to `@action` methods which update a piece of state. But this isn't very ergonomic. `@subscribe` decorator?
 * `@reducer`?
 
 On the horizon:
