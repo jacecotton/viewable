@@ -120,14 +120,14 @@ Most divergences from React, and why we can shed so much of its API footprint, d
     * Get references to rendered nodes with `this.shadowRoot.querySelector`.
 * No `useCallback`—class method identity is stable across renders.
 * No `useContext`—not needed class-side (just use global state), and for view-side, use Lit's directives to wire up shared context
-* No `useLayoutEffect`—`@effect` methods are post-render as-is
+* No `useLayoutEffect`—`@effect` methods are already synchronous (post-render, pre-paint). Use `setTimeout(cb, 0)` inside `@effect` to do async effects (like `useEffect`).
 * No custom hooks—use Lit's directives for reusable stateful logic
 * No performance hooks because custom elements leverage the broader browser ecosystem—no `useDeferredValue`, `useTransition`, `useOptimistic` etc.
 
 We provide alternatives or recommend vanilla solutions for the following:
 
 * No `useState`—use `@state` (avoids stale closure issues and surfaces state as regular, r/w-able properties of the element)
-* No `useEffect`—use `@effect` (stable identity, cleaner source of deps, surface effects as regular methods)
+* No `useEffect`—use `@effect` for synchronous effects (stable identity, cleaner source of deps, surface effects as regular methods). Use `setTimeout(cb, 0)` inside effect method for async effects.
 * No `useMemo`—use `@memo`.
 * No JSX—use tagged template literals.
 * No portals—custom elements use `slot`.
