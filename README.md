@@ -95,24 +95,40 @@ The highest aspiration of this project is an evolution from a microlibrary to a 
 ----
 <small>1. And, in rare cases, invalidate.</small>
 
-## `attachView(view)`
+### API
+#### `attachView(view)`
 * `attachShadow` is required
 
-## `@state`
-* transform, equals, should, subscribe (+ selector)
+#### `@state(options)`
+* transform, equals, should
 * custom setters (don't use on getters unless you're memoizing—see [`@memo`](#memo))
+* for computed state, probably just do that in the view function? If it's expensive, use memo-state
+* How should we handle external subscriptions?
+    * We don't want a direct `subscribe` option in the decorator, as it could potentially create duplicate subscriptions and doesn't have a clear way to unsubscribe on disconnect (except for a magical behind-the-scenes cleanup).
+    * What we do want is for there to already be an existing subscription to that external store, and then for the decorator to simply specify which key in that store maps to the decorated field (e.g. `@state({store: this.#someRefToStore, selector: (store) => store.currentUser}) currentUser = null`).
+    * Then, when that subscription receives an update, the state prop updates and the update pipeline happens. How to implement this, unsure.
 
-## `@action`
+#### `@action`
 
-## `@effect(deps[])`
+#### `@effect(deps[])`
+Returns cleanup method.
 
-## `@memo(deps[])`
+##### The future with signals
+In the future, signals will provide automatic dependency tracking, at which point `deps[]` will be removed.
 
-## `invalidateView`
+So, we shouldn't allow `@effect([])` as an "after-first-render" hook, nor `@effect()` as an "after-every-render" hook.
 
-## `isMounted`
+Instead, for "after-first-render", we should recommend `connectedCallback` (call `super.connectedCallback` either before or after your operations, depending on which you desire). This is more semantically accurate, since after-first-render operations aren't reactive to dependencies, but are instead lifecycle-contingent operations.
 
-## What about...? (React)
+We probably shouldn't support an "after-every-render" pattern, as it's likely a code smell.
+
+#### `@memo(deps[])`
+
+#### `invalidateView`
+
+#### `isMounted`
+
+### What about...? (React)
 Most divergences from React, and why we can shed so much of its API footprint, derive from the fact that logic and side effects are object-oriented and imperative in a class-based custom element workflow.
 
 * No `useRef`
@@ -140,7 +156,7 @@ Open questions:
 On the horizon:
 * Scheduler API can solve for async effects (instead of `setTimeout`).
 
-## What about...? (Lit)
+### What about...? (Lit)
 Most divergences from Lit derive from the fact that the lifecycle is handled either more declaratively and semantically (in the case of decorator-based solutions), or idiomatically (where Viewable doesn't have an opinion and doesn't need to provide a hook since doing so would just be sugar).
 
 * No `shouldUpdate`—use [`@state({should: () => {}})`](#state).
@@ -148,7 +164,7 @@ Most divergences from Lit derive from the fact that the lifecycle is handled eit
   * Use [`@memo`](#memo-deps) to do things before state updates are considered "complete".
   * Use [`@effect`](#effect-deps) to do things based on previous state values.
   * Use [`@action`](#action) for arbitrary pre-render setup (or `connectedCallback` before calling `super.connectedCallback` for pre-first-render setup).
-  * Deliberately no solution provided for "before every render" operations (code smell).
+  * Deliberately no solution provided for "before every render" operations (code smell just like "after every render").
 * No `firstUpdated`—first render can be assumed within `connectedCallback` (just make sure to call `super.connectedCallback` first). If you're paranoid, check `this.isMounted`.
 * No `updated`—use effects.
 * No `createRenderRoot`—shadow DOM required, DIY idiomatically with `attachShadow`.
@@ -156,15 +172,16 @@ Most divergences from Lit derive from the fact that the lifecycle is handled eit
 
 We've tweaked other APIs while keeping them effectively the same:
 
-* `invalidateView` instead of `requestUpdate`—Viewable doesn't let you explicitly request an update *per se*. Instead, you declare the view as stale, and the fact that it updates in response is implicit. This is because we don't *really* want you imperatively updating the view and running effects. It should only be done for resynchronizing the view with the environment (observers, events, etc.) Normally, the pipeline should always be `state → action → (update queue) → effects (→ action → update → effects → ...) → paint`.
+* `invalidateView` instead of `requestUpdate`—Viewable doesn't let you explicitly request an update *per se*. Instead, you declare the view as stale, and the fact that it updates in response is implicit. This is because we don't *really* want you imperatively updating the view and running effects. It should only be done for resynchronizing the view with the environment (observers, events, etc.) This helps preserve a consistent data flow.
 
 Open questions:
 * `updateComplete` promise? Potentially useful for outside observers. Also consider dispatching events.
 
-## Known and open issues
+### Known issues
+#### Will address
 * Typing complexity—how does the view know prop types?
 * Testing—modularizing views and decorated fields make testing theoretically easy, but actual utilities need to be developed.
 * SSR support—need to research
 
-## Won't solve
+#### Won't address
 * Styles—no opinion (recommendation: constructed stylesheets).
