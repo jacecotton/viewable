@@ -119,8 +119,8 @@ Most divergences from React, and why we can shed so much of its API footprint, d
     * Class fields are non-rendering and persist across renders by default.
     * Get references to rendered nodes with `this.shadowRoot.querySelector`.
 * No `useCallback`—class method identity is stable across renders.
-* No `useContext`—use Lit's directives.
-* No custom hooks—use Lit's directives.
+* No `useContext`—use Lit's context directive or pass props.
+* No custom hooks—use Lit's directives for reusable stateful logic.
 * No `useMemo`—use `@memo`.
 * No JSX—use tagged template literals.
 
@@ -135,7 +135,19 @@ Most divergences from Lit derive from the fact that the lifecycle is handled eit
   * Deliberately no solution provided for "before every render" operations (code smell).
 * No `firstUpdated`—first render can be assumed within `connectedCallback` (just make sure to call `super.connectedCallback` first). If you're paranoid, check `this.isMounted`.
 * No `updated`—use effects.
+* No `createRenderRoot`—shadow DOM required, DIY idiomatically with `attachShadow`.
+* No `@query` decorators—use `querySelector`/`querySelectorAll` in `connectedCallback` or `get` method.
+
+We've tweaked other APIs while keeping them effectively the same:
+
+* `invalidateView` instead of `requestUpdate`—Viewable doesn't let you directly request an update, *per se*. Instead, you declare the view as stale, and the fact that it updates in response is implicit. We consider this more declarative and semantic.
+
+Open questions:
+* `updateComplete` promise? Potentially useful for outside observers. Also consider dispatching events.
 
 ## Known and open issues
 * Typing complexity—how does the view know prop types?
 * Testing—modularizing views and decorated fields make testing theoretically easy, but actual utilities need to be developed.
+
+## Won't solve
+* Styles—no opinion (recommendation: constructed stylesheets).
