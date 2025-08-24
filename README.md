@@ -113,7 +113,7 @@ The highest aspiration of this project is an evolution from a microlibrary to a 
 ## `isMounted`
 
 ## What about...? (React)
-Most divergences from React, and why we can shed so much of its API footprint, derives from the fact that logic and side effects are object-oriented and imperative in a class-based custom element workflow.
+Most divergences from React, and why we can shed so much of its API footprint, derive from the fact that logic and side effects are object-oriented and imperative in a class-based custom element workflow.
 
 * No `useRef`
     * Class fields are non-rendering and persist across renders by default.
@@ -125,6 +125,16 @@ Most divergences from React, and why we can shed so much of its API footprint, d
 * No JSX—use tagged template literals.
 
 ## What about...? (Lit)
+Most divergences from Lit derive from the fact that the lifecycle is handled either more declaratively and semantically (in the case of decorator-based solutions), or idiomatically (where Viewable doesn't have an opinion and doesn't need to provide a hook since doing so would just be sugar).
+
+* No `shouldUpdate`—use [`@state({should: () => {}})`](#state).
+* No `willUpdate`
+  * Use [`@memo`](#memo-deps) to do things before state updates are considered "complete".
+  * Use [`@effect`](#effect-deps) to do things based on previous state values.
+  * Use [`@action`](#action) for arbitrary pre-render setup (or `connectedCallback` before calling `super.connectedCallback` for pre-first-render setup).
+  * Deliberately no solution provided for "before every render" operations (code smell).
+* No `firstUpdated`—first render can be assumed within `connectedCallback` (just make sure to call `super.connectedCallback` first). If you're paranoid, check `this.isMounted`.
+* No `updated`—use effects.
 
 ## Known and open issues
 * Typing complexity—how does the view know prop types?
