@@ -99,7 +99,7 @@ The highest aspiration of this project is an evolution from a microlibrary to a 
 * `attachShadow` is required
 
 ## `@state`
-* transform, equals
+* transform, equals, should
 * custom setters (don't use on getters unless you're memoizing—see [`@memo`](#memo))
 
 ## `@action`
