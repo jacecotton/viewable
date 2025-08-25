@@ -100,9 +100,41 @@ The highest aspiration of this project is an evolution from a microlibrary to a 
 * `attachShadow` is required
 
 #### `@state(options)`
-* transform, equals, should
-* custom setters (don't use on getters unless you're memoizing—see [`@memo`](#memo))
-* for computed state, probably just do that in the view function? If it's expensive, use memo-state
+```js
+@state() prop = "value";
+```
+
+* `{}`
+    * `transform` (`value => value`) — function to transform value before it's set (type coercion, trimming, etc.)
+    * `equals` (`(a, b) => bool`) — custom comparator function ("what counts as equal") to determine whether state has updated
+    * `should` (`value => bool`) — return condition for whether state change should trigger an update
+
+If you want custom accessors, decorate the setter:
+
+```js
+#prop = null;
+
+get prop() {
+  return this.#prop;
+}
+
+@state set prop(value) {
+  // ...
+  this.#prop = value;
+}
+```
+
+Decorate the getter if you're just memoizing (e.g. for computed state):
+
+```js
+@state()
+@memo(["propA", "propB"]) get propC() {
+  return `${this.propA} ${this.propB}`;
+}
+```
+
+(However, for computed state, probably better off living in the view function.)
+
 * How should we handle external subscriptions?
     * We don't want a direct `subscribe` option in the decorator, as it could potentially create duplicate subscriptions and doesn't have a clear way to unsubscribe on disconnect (except for a magical behind-the-scenes cleanup).
     * What we do want is for there to already be an existing subscription to that external store, and then for the decorator to simply specify which key in that store maps to the decorated field (e.g. `@state({store: this.#someRefToStore, selector: (store) => store.currentUser}) currentUser = null`).
