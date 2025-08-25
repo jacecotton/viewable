@@ -143,10 +143,9 @@ Decorate the getter if you're just memoizing (e.g. for computed state):
 
 (Note: Unless the computation is expensive or complicated, you're probably better off doing simple things like concatenation in the view function.)
 
-* How should we handle external subscriptions?
-    * We don't want a direct `subscribe` option in the decorator, as it could potentially create duplicate subscriptions and doesn't have a clear way to unsubscribe on disconnect (except for a magical behind-the-scenes cleanup).
-    * What we do want is for there to already be an existing subscription to that external store, and then for the decorator to simply specify which key in that store maps to the decorated field (e.g. `@state({store: this.#someRefToStore, selector: (store) => store.currentUser}) currentUser = null`).
-    * Then, when that subscription receives an update, the state prop updates and the update pipeline happens. How to implement this, unsure.
+**What about subscriptions to external stores?**
+
+Set up your subscription in `connectedCallback` or an effect, set a `@state` property in the update callback.
 
 #### `@action`
 
