@@ -109,16 +109,21 @@ The highest aspiration of this project is an evolution from a microlibrary to a 
     * `equals` (`(a, b) => bool`) — custom comparator function ("what counts as equal") to determine whether state has updated
     * `should` (`value => bool`) — return condition for whether state change should trigger an update
 
-If you want custom accessors, decorate the setter:
+If defining your own accessors, decorate just the setter:
 
 ```js
 #prop = null;
 
+// Decorating the getter would just pass `prop` to the view
+// function and effect runner, but it wouldn't trigger an
+// update when the property is set.
 get prop() {
   return this.#prop;
 }
 
-@state set prop(value) {
+// This both registers the property as state and makes the
+// property reactive.
+@state() set prop(value) {
   // ...
   this.#prop = value;
 }
@@ -127,13 +132,16 @@ get prop() {
 Decorate the getter if you're just memoizing (e.g. for computed state):
 
 ```js
+// You wouldn't decorate the setter in this scenario, because
+// this is derived state and updates should only emanate from
+// updates to the dependencies.
 @state()
 @memo(["propA", "propB"]) get propC() {
   return `${this.propA} ${this.propB}`;
 }
 ```
 
-(However, for computed state, probably better off living in the view function.)
+(Note: Unless the computation is expensive or complicated, you're probably better off doing simple things like concatenation in the view function.)
 
 * How should we handle external subscriptions?
     * We don't want a direct `subscribe` option in the decorator, as it could potentially create duplicate subscriptions and doesn't have a clear way to unsubscribe on disconnect (except for a magical behind-the-scenes cleanup).
