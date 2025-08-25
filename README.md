@@ -105,7 +105,7 @@ The highest aspiration of this project is an evolution from a microlibrary to a 
 ```
 
 * `{}`
-    * `transform` (`value => value`) — function to transform value before it's set (type coercion, trimming, etc.)
+    * `transform` (`value₁ => value₂`) — function to transform value before it's set (type coercion, trimming, etc.)
     * `equals` (`(a, b) => bool`) — custom comparator function ("what counts as equal") to determine whether state has updated
     * `should` (`value => bool`) — return condition for whether state change should trigger an update
 
