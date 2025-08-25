@@ -100,8 +100,10 @@ The highest aspiration of this project is an evolution from a microlibrary to a 
 * `attachShadow` is required
 
 #### `@state(options)`
+Mark a member as reactive state, accessible to the view. Mutations will trigger a re-render and execute relevant effects.
+
 ```js
-@state() prop = "value";
+@state({}) prop = "value";
 ```
 
 * `{}`
