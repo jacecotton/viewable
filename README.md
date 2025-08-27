@@ -226,3 +226,6 @@ Open questions:
 
 #### Won't address
 * Styles—no opinion (recommendation: constructed stylesheets).
+
+#### Undecided
+* Suspense/skeleton pattern
