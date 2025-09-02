@@ -85,8 +85,8 @@ Runs effect callbacks, useful for cleanup to prevent memory leaks, reverse side 
 Asynchronous (batched, `queueMicrotask` for now, scheduler API later) vs. synchronous (where the `render` invocation lives, updates against `this.shadowRoot` always).
 
 #### Public API
-##### Imperative view registration
-PoC signature: `attachView(viewFn)`
+##### View registration
+PoC signature: `this.attachView(viewFn)`
 
 Registers view template, schedules first render when element is connected, makes reactive to state changes, passes state and actions.
 
@@ -96,8 +96,12 @@ View template requirements:
 * `TemplateResult` with inline events (action methods usable as handlers)
 * `lit-html` offers highly performant part-level diffing and mature [directives](#directives) solution.
 
-##### Imperative view invalidation
-PoC signature: `invalidateView()`
+##### View invalidation
+PoC signature: `this.invalidateView()`
+
+Must not allow passing data through to the view, as this breaks the expected reactive flow.
+
+Generally discouraged, as common use cases are probable code smells. Just a public wrapper for internal async render method.
 
 #### Decorators
 ##### `@state(options)`
