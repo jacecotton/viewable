@@ -48,7 +48,7 @@ The key elements are (1) [decorators](#decorators) for member semantics ([state]
 Unlike Lit or React class-based components:
 * The view is strictly a pure function of a state snapshot, and is itself forcibly *stateless* (no r/w access to `this`).
 * Monolithic lifecycle callbacks are replaced with atomic state signals and effects (decorated fields and methods, respectively).
-* Automatic `this`-binding for event handlers (via [`@action`](#action)).
+* Automatic `this`-binding for event handlers (via actions).
 
 And unlike React functional components (or Solid, Atomico, et al.), but like Lit:
 * There are no "escape hatches" (hooks) for state management, imperative side effects, and business logic, as those live naturally in the class definition.
