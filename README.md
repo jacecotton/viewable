@@ -61,7 +61,7 @@ This allows us to shed from both much of the API footprint and resulting surface
 This is not aiming to be a library or framework, but more of a contract for mixins and base classes to implement. The idea here is to isolate functional bits that can be swapped out for competitors or eventually replaced by native features. For example:
 * Synchronous view rendering can use `lit/render` (current PoC), `uhtml`, or maybe a native solution ([DOM Parts](https://github.com/tbondwilkinson/dom-parts#readme) might fit the bill depending on shape).
 * Asynchronous view rendering can batch behind a custom debouncer, native [microtask](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide) (current PoC solution), or [scheduler](https://developer.mozilla.org/en-US/docs/Web/API/Scheduler) (better but limited availability).
-* In our current PoC, generated state `set` methods imperatively request a rerender, and effects are imperatively invoked in response. In the future, [native signals](https://github.com/tc39/proposal-signals) will be the recommended backend approach (and one *could* use an existing third-party signals library in the meantime).
+* In our current PoC, generated state `set` methods imperatively request a rerender, and effects are imperatively invoked in response. But you could use proxies or a third-party signals library. In the future, [native signals](https://github.com/tc39/proposal-signals) will be the recommended backend approach.
 
 ### Contract
 #### Side effects
