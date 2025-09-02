@@ -145,7 +145,7 @@ We call them "virtual" because there is no trace in the rendered DOM of the virt
 
 Implementation notes:
 * For PoC, we leverage `lit-html`'s parts API and `lit/directive` to create directives.
-* In the future, something like the proposed DOM Parts API may provide an equivalent backend solution, though we will seek to normalize the public API.
+* In the future, something like the proposed DOM Parts API may provide an equivalent backend solution, though we will seek to normalize the public API as currently implemented. The view function may end up being a template reference, but registration and passing data should remain ergonomically identical.
 
 #### Styling
 Unlike Lit, no direct conveniences for styling. We recommend using constructed stylesheets. Made even easier with CSS module scripts, which are not very publicized but usable.
