@@ -131,10 +131,16 @@ Effect methods respond to rerenders (side effects, imperative operations, etc.) 
 
 Decorated method gets `last` object for previous state snapshot comparison.
 
-Only use for after-every-render. For after-first-render/once-after-mount, use `@effect.once()`.
+Effects should return callback functions that perform cleanup operations (tear down event listeners, observers, timers, subscriptions, etc.) These will be run automatically in `disconnectedCallback`, as well as each time before an effect is invoked.
 
-* `@effect()` is for *reactivity*.
-* `@effect.once()` is for *lifecycle*.
+```js
+@effect(["delay"]) startPolling() {
+  const interval = setInterval(() => this.poll(), this.delay);
+  return () => clearInterval(interval);
+}
+```
+
+Only use for after-every-render. For after-first-render/once-after-mount, use `@effect.once()`.
 
 ### Production hardening
 There are some things provided by Lit or React(-ish libraries) that Viewable wouldn't care about or provide directly. Instead, we have recommendations.
