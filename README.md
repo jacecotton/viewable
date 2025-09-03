@@ -36,7 +36,7 @@ customElements.define("click-counter", ClickCounter);
 // click-counter.view.js
 import {html} from "your-favorite-parser";
 
-export ({count, label}, {increment}) => html`
+export const view = ({count, label}, {increment}) => html`
   <button @click="${increment}">${label}</button>
   <p>Clicked ${count} times</p>
 `;
@@ -59,7 +59,7 @@ This allows us to shed from both much of the API footprint and resulting surface
 
 ### Goal disclaimer
 This is not aiming to be a library or framework, but more of a contract for mixins and base classes to implement. The idea here is to isolate functional bits that can be swapped out for competitors or eventually replaced by native features. For example:
-* Synchronous view rendering can use `lit/render` (current PoC), `uhtml`, or maybe a native solution ([DOM Parts](https://github.com/tbondwilkinson/dom-parts#readme) might fit the bill depending on shape).
+* Synchronous view rendering could use `lit/render` (current PoC), `uhtml`, etc., or maybe a native solution ([DOM Parts](https://github.com/tbondwilkinson/dom-parts#readme) might fit the bill depending on shape).
 * Asynchronous view rendering can batch behind a custom debouncer, native [microtask](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide) (current PoC solution), or [scheduler](https://developer.mozilla.org/en-US/docs/Web/API/Scheduler) (better but limited availability).
 * In our current PoC, generated state `set` methods imperatively request a rerender, and effects are imperatively invoked in response. But you could use proxies or a third-party signals library. In the future, [native signals](https://github.com/tc39/proposal-signals) will be the recommended backend approach.
 
@@ -84,9 +84,13 @@ Runs effect callbacks, useful for cleanup to prevent memory leaks, reverse side 
 ##### Render scheduling
 Asynchronous (batched, `queueMicrotask` for now, scheduler API later) vs. synchronous (where the `render` invocation lives, updates against `this.shadowRoot` always).
 
+State snapshots are cached until after the next render is complete. This way, the effect runner knows which effects to execute.
+
 #### Public API
 ##### View registration
 PoC signature: `this.attachView(viewFn)`
+
+`viewFn`: `(state, actions)` (e.g. `state.count`, `actions.increment`).
 
 Registers view template, schedules first render when element is connected, makes reactive to state changes, passes state and actions.
 
@@ -104,28 +108,33 @@ Must not allow passing data through to the view, as this breaks the expected rea
 Generally discouraged, as common use cases are probable code smells. Just a public wrapper for internal async render method.
 
 #### Decorators
-##### `@state(options)`
+##### `@state({options})`
 State fields/properties trigger rerenders when updated, are readable by the view, mutable by actions, and dependable by effects.
 
 If used to create reactive properties, **only decorate the `set` method**, which will both make the property accessible to the view and make the view reactive to its mutation.
 
 If used in combination with `@computed`, **only define a `get` method**. Using a setter in this case doesn't make sense.
+
+`options`:
+* `[shouldInvalidate=(previous, next) => true]`: The condition under which a state update should invalidate the view, based on its previous/old and next/new values.
+* `[coerce=next => next]`: Transform the value when setting, useful for type coercion (e.g. `{coerce: Number}`) or data normalization (e.g. `{coerce: v => v.trim()}`).
+* `[equals=Object.is(previous, next)]`: Custom comparator function (what counts as a change). Useful for diffing against specific keys within a state prop object (e.g. `(previous, next) => Object.is(previous.id, next.id)`), or using different identity primitives (e.g., switch to strict comparison via `(previous, next) => previous === next`).
   
 ##### `@computed(deps[])`
 Memoized state calculations. Useful, but optional if only relevant to the view function. Only use in combination with `@state` to decorate `get` methods (in which case, the computed property itself is not reactive—its dependencies are).
 
 ##### `@action()`
-Action methods are for imperative state mutations. Auto-bound `this` so they can be used as inline event handlers in the view.
+Action methods are for mutating state. Auto-bound `this` so they can be used as inline event handlers in the view (all actions passed as an object to the second parameter of the view function).
   
 ##### `@effect(deps[])`
 Effect methods respond to rerenders (side effects, imperative operations, etc.) and are tracked to specific state dependencies.
 
-Passed `last` object for previous state snapshot comparison.
+Decorated method gets `last` object for previous state snapshot comparison.
 
 Only use for after-every-render. For after-first-render/once-after-mount, use `@effect.once()`.
 
 * `@effect()` is for *reactivity*.
-* `@effect.once()` is for *lifecycle operations*.
+* `@effect.once()` is for *lifecycle*.
 
 ### Production hardening
 There are some things provided by Lit or React(-ish libraries) that Viewable wouldn't care about or provide directly. Instead, we have recommendations.
