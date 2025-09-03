@@ -43,7 +43,7 @@ export const view = ({count, label}, {increment}) => html`
 ```
 
 ### Overview
-The key elements are (1) [decorators](#decorators) for member semantics ([state](#stateoptions), state-mutating [actions](#action), state-dependent [effects](#effectdeps)), and (2) [stateless views](#imperative-view-registration). The idea is to have a clear separation of concerns between the *behavior* side (imperative, object-oriented, stateful, side effectful) and the *view* side (declarative, pure, stateless).
+The key elements are (1) [decorators](#decorators) for member semantics ([state](#stateoptions), state-mutating [actions](#action), state-dependent [effects](#effectdeps)), and (2) [stateless views](#view-registration). The idea is to have a clear separation of concerns between the *behavior* side (imperative, object-oriented, stateful, side effectful) and the *view* side (declarative, pure, stateless).
 
 Unlike Lit or React class-based components:
 * The view is strictly a pure function of a state snapshot, and is itself forcibly *stateless* (no r/w access to `this`).
@@ -84,28 +84,75 @@ Runs effect callbacks, useful for cleanup to prevent memory leaks, reverse side 
 ##### Render scheduling
 Asynchronous (batched, `queueMicrotask` for now, scheduler API later) vs. synchronous (where the `render` invocation lives, updates against `this.shadowRoot` always).
 
+Synchronous function passes a collection of [state field/property values](#state) and [action methods](#action) (with automatic `this` binding) to the registered view function (see [view registration](#view-registration)).
+
 State snapshots are cached until after the next render is complete. This way, the effect runner knows which effects to execute.
 
 #### Public API
 ##### View registration
-PoC signature: `this.attachView(viewFn)`
+* PoC signature: `attachView((state: object, actions: object) => TemplateResult): void`
 
-`viewFn`: `(state, actions)` (e.g. `state.count`, `actions.increment`).
+If a shadow root is attached, registers the passed view function for consumption by the [render scheduler](#render-scheduling).
 
-Registers view template, schedules first render when element is connected, makes reactive to state changes, passes state and actions.
+Replaces Lit/class-based React's `render` lifecycle callbacks.
 
-Requires `this.shadowRoot`, so always precede with `this.attachShadow({mode?})`.
+> <details>
+>  <summary>Implementation example</summary>
+> 
+> ```js
+> attachView(viewFn) {
+>   if(this.#view || !this.shadowRoot) return;
+>   this.#view = viewFn;
+> }
+> ```
+> </details>
 
-View template requirements:
-* `TemplateResult` with inline events (action methods usable as handlers)
-* `lit-html` offers highly performant part-level diffing and mature [directives](#directives) solution.
+> <details>
+>  <summary>Usage example</summary>
+> 
+> ```js
+> this.attachView(view);
+> ```
+> </details>
 
-##### View invalidation
-PoC signature: `this.invalidateView()`
+**❇️ Recommendation:** For `TemplateResult`, `lit-html` offers highly performant part-level diffing and mature [directives](#directives) solution.
+
+##### View invalidation (optional)
+* PoC signature: `invalidateView(): void`
+
+A public endpoint for [asynchronous render scheduling](#render-scheduling).
 
 Must not allow passing data through to the view, as this breaks the expected reactive flow.
 
-Generally discouraged, as common use cases are probable code smells. Just a public wrapper for internal async render method.
+Replaces Lit's `requestUpdate` utility method, or class-based React's `forceUpdate`.
+
+> <details>
+>  <summary>Implementation example</summary>
+> 
+> ```js
+> invalidateView() {
+>   this.#renderAsync();
+> }
+> ```
+> </details>
+
+> <details>
+>  <summary>Usage example</summary>
+> 
+> ```js
+> this.invalidateView();
+> ```
+> </details>
+
+> <strong>⚠️ Warning:</strong> Imperative view invalidation should be explicitly discouraged.</summary>
+> <details>
+> <summary>See details</summary>
+> 
+> Viewable does not provide a generic `requestUpdate` method (like LitElement does), because views should exclusively be a pure function of state.
+>
+> The recommended pattern should be to mutate some relevant state property if a view update is needed. Manual invalidation can easily be a footgun because it can be difficult to track down, unlike the `@state`- and `observedAttributes`-based reactivity system.
+>
+> If a system outside the component instance needs to trigger view updates (e.g. reactive controllers), a relevant state property should be publicly mutable.</details>
 
 #### Decorators
 ##### `@state({options})`
