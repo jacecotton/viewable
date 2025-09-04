@@ -1,5 +1,7 @@
 ## Viewable
-Viewable is a custom element class mixin built on Lit's rendering engine (`lit-html`) as a replacement for its reactivity engine (`LitElement`).
+Viewable is an alternative to Lit's reactivity engine (`LitElement`) while still leveraging its rendering engine (`lit-html`) under the hood.
+
+It provides a way to register a [view](#views) as a UI template, and then a small set of member semantics (via decorators) to create and handle reactivity.
 
 ```js
 // click-counter.js
@@ -38,7 +40,7 @@ export const view = ({count, label}, {increment}) => html`
 `;
 ```
 
-### Overview
+### Definitions
 #### Views
 **Views** are the HTML template used to render the UI of a component.
 
@@ -46,11 +48,9 @@ Importantly, views only have access to:
 1. a **snapshot copy** of [state](#state) at time of rendering (hence views are "stateless" or "pure functions of state"—no access to `this`), and
 1. **stable references** to a class's [actions](#actions), which are methods that react to the *outside world* (such as a user clicking a button) by changing the corresponding state of a component.
 
-This way, the view *strictly* reflects relevant state at the moment it was asked to render, and *cannot* produce its own side effects.<sup>1</sup> Views are thus the declarative and pure counterpart to [effects](#effects).
+This way, the view strictly reflects relevant state at the moment it was asked to render, and cannot produce its own instance-level side effects.<sup>1</sup> Views are thus the declarative and pure counterpart to [effects](#effects).
 
-In our current implementation, views are written with `lit-html/html`, which breaks the template into tagged parts. `lit-html/render` will then make direct DOM updates to any of, and only, these parts that diverge between renders. This avoids the need for a virtual DOM and allows for safe, highly efficient DOM updates.
-
-<sup>1. This isn't technically true, as users could still access `window`, `document`, etc. But this is out-of-scope for our purposes, probably better dealt with by a linting rule.</sup>
+<sup>1. It can still technically produce *general* side effects and impure results through access to `window`, `document`, and browser APIs, but this is more of a linting concern than an architectural one.</sup>
 
 #### State
 **State** are fields and properties that the [view](#views) and [effects](#effects) automatically react to and use as internal dependencies.
@@ -70,15 +70,6 @@ Actions are automatically bound to `this` and then passed by reference to the vi
 Effects perform imperative operations (like setting up or reconfiguring timers, observers, DOM queries, etc.) in response to state changes. Unlike the view, effects live in the class and have access to live state, as they *are* intended for side effects.
 
 Effects should return callback functions used for teardown/cleanup. These callbacks will always be invoked before the effect itself reruns, as well as in `disconnectedCallback`. This can help prevent memory leaks and reverse side effects.
-
-### Higher order concepts
-#### Directives
-Directives are bundles of state and lifecycle logic that can be reused across multiple views. They can be used as virtual components. Use `lit/directive` to create them.
-
-#### Controllers
-Controllers are bundles of state and lifecycle logic that can be reused across multiple custom element classes. They're a composable alternative to mixins.
-
-No solution yet. Currently exploring abstracting a base class that both `Viewable` and a hypothetical `Controller` class extend, which orchestrates state and action collection, and view and effect orchestration. Unsure exactly what this will look like, because controller members need to be namespaced separately from the host members, but the view and effects need flat references.
 
 ### Core principles
 * **Separation of concerns** — Class = behavior and imperative operations, view = UI description.
@@ -163,13 +154,14 @@ Effects should return callback functions that perform cleanup operations (tear d
 ##### `@effect.once()`
 After-first-render instead of after-every-render effects.
 
-### Known issues
-#### Will address
-* Typing complexity—how does the view know arg types?
-* Testability—modularizing views and decorated fields make testing theoretically easy, but actual utilities need to be developed.
-* Internal testing—PoC implementation needs robust testing (performance, edge cases, etc.)
-* SSR support? May just inherit from Lit. Track conversation for relevant standards proposals.
-* Composition with controllers?
-
-#### Won't address
-* Suspense/skeleton pattern—for now, recommended to render skeletons conditionally based on load state updates. Skeleton components themselves can be part of downstream libs.
+### Roadmap
+In a future phase, will work on:
+* Context — `@provide` and `@consume` for shared context across custom elements (shares provider's `@state` collections with consumer's reactivity system).
+* Controllers — Can use directives (reusable bundles of state and lifecycle across views) as-is with `lit/directive`, but controllers are trickier (reusable bundles of state and logic across classes). Need to solve for namespacing given that views and effects expect flat references.
+* Typing
+    * External — Need to solve for how the view can know arg types.
+    * Internal — Probably look into migrating to TS.
+* Testing
+    * External — Modularized views and decorated members make testing theoretically easy, but actual utilities need to be developed.
+    * Internal — Need our own tests for Viewable development.
+* SSR — No clue yet, probably won't solve.
