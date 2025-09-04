@@ -157,6 +157,9 @@ After-first-render instead of after-every-render effects.
 ### Roadmap
 In a future phase, will work on:
 * Context — `@provide` and `@consume` for shared context across custom elements (shares provider's `@state` collections with consumer's reactivity system).
+* Signals — Signals not only can provide the backend for `@state`, but also global/shared state.
+    * Similar in concept to context, but would be better for truly global state; data relevant to theoretically unrelated components (current user, shopping cart details, etc.) However, global state comes with its own set of problems, so subtree-scoped *context* would be better for a tree of directly related, composed components (like form components that need to share data but only within the form).
+    * Signals could still be the backend for context, but context would come with the scoping. Perhaps there's a way to reconcile the two within one API? Global signals with context-scoping options?
 * Controllers — Can use directives (reusable bundles of state and lifecycle across views) as-is with `lit/directive`, but controllers are trickier (reusable bundles of state and logic across classes). Need to solve for namespacing given that views and effects expect flat references.
 * Typing
     * External — Need to solve for how the view can know arg types.
