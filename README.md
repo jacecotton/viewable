@@ -165,3 +165,4 @@ In a future phase, will work on:
     * External — Modularized views and decorated members make testing theoretically easy, but actual utilities need to be developed.
     * Internal — Need our own tests for Viewable development.
 * SSR — No clue yet, probably won't solve.
+* What does the picture look like for private state and actions when used as view or effect dependencies?
