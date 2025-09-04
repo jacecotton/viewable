@@ -1,9 +1,5 @@
 ## Viewable
-Documenting a set of custom element semantics for creating more robust web components, leveraging ES decorators (stage 3 proposal) and coalescing around mature userland conventions.
-
-The vision here is a prescription that downstream implementations, including our own proof-of-concept, can follow.
-
-Minimalistic shape based on current PoC:
+Viewable is a custom element class mixin built on Lit's rendering engine (`lit-html`) as a replacement for its reactivity engine (`LitElement`).
 
 ```js
 // click-counter.js
@@ -13,13 +9,13 @@ import {view} from "./click-counter.view.js";
 class ClickCounter extends Viewable(HTMLElement) {
   static observedAttributes = ["label"];
 
+  @state() count = 0;
+
   constructor() {
     super();
     this.attachShadow({mode: "open"});
     this.attachView(view);
   }
-
-  @state() count = 0;
 
   @action() increment() {
     this.count++;
@@ -34,7 +30,7 @@ customElements.define("click-counter", ClickCounter);
 ```
 ```js
 // click-counter.view.js
-import {html} from "your-favorite-parser";
+import {html} from "lit-html";
 
 export const view = ({count, label}, {increment}) => html`
   <button @click="${increment}">${label}</button>
@@ -43,7 +39,67 @@ export const view = ({count, label}, {increment}) => html`
 ```
 
 ### Overview
-The key elements are (1) [decorators](#decorators) for member semantics ([state](#stateoptions), state-mutating [actions](#action), state-dependent [effects](#effectdeps)), and (2) [stateless views](#view-registration). The idea is to have a clear separation of concerns between the *behavior* side (imperative, object-oriented, stateful, side effectful) and the *view* side (declarative, pure, stateless).
+#### Views
+**Views** are the HTML template used to render the UI of a component.
+
+Importantly, views only have access to:
+1. a **snapshot copy** of [state](#state) at time of rendering (hence views are "stateless" or "pure functions of state"—no access to `this`), and
+1. **stable references** to a class's [actions](#actions), which are methods that react to the *outside world* (such as a user clicking a button) by changing the corresponding state of a component.
+
+This way, the view *strictly* reflects relevant state at the moment it was asked to render, and *cannot* produce its own side effects.<sup>1</sup> Views are thus the declarative and pure counterpart to [effects](#effects).
+
+In our current implementation, views are written with `lit-html/html`, which breaks the template into tagged parts. `lit-html/render` will then make direct DOM updates to any of, and only, these parts that diverge between renders. This avoids the need for a virtual DOM and allows for safe, highly efficient DOM updates.
+
+<sup>1. This isn't technically true, as users could still access `window`, `document`, etc. But this is out-of-scope for our purposes, probably better dealt with by a linting rule.</sup>
+
+#### State
+**State** are fields and properties that the [view](#views) and [effects](#effects) automatically react to and use as internal dependencies.
+
+The view has access to a copy of the state at render time, and automatically rerenders when it changes.
+
+Effect methods are impure functions of state (live state access, imperatives/side effects), and will run when state listed as a dependency is changed.
+
+A custom element's observed attributes are automatically treated as state.
+
+#### Actions
+Actions are methods that react to the *outside world* (user events, external state updates, etc.) by changing the component's state.
+
+Actions are automatically bound to `this` and then passed by reference to the view. Their identity is stable across renders (no `useMemo`!) and are usable as handlers for inline events.
+
+```js
+const view = (state, actions) => html`
+  <button @click="${actions.clickHandler}">...</button>
+`;
+```
+
+#### Effects
+Effects perform imperative operations (like setting up or reconfiguring timers, observers, DOM queries, etc.) in response to state changes. Unlike the view, effects live in the class and have access to live state, as they *are* intended for side effects.
+
+Effects should return callback functions used for teardown/cleanup. These callbacks will always be invoked before the effect itself reruns, as well as in `disconnectedCallback`. This can help prevent memory leaks or leaving behind messy effects.
+
+```js
+@effect(["delay"]) startPolling() {
+  const interval = setInterval(() => this.poll(), this.delay);
+  // In-closure access to `interval` (no messy `this.#interval`, identity issues, etc.)
+  return () => clearInterval(interval);
+}
+```
+
+`@effect.once()` allows you to run an effect once after the first render. This method does not accept dependencies, as it runs no matter what as part of the mounting process.
+
+### Higher order concepts
+#### Directives
+Directives are bundles of state and lifecycle logic that can be reused across multiple views. They can be used as virtual components. Use `lit/directive` to create them.
+
+#### Controllers
+Controllers are bundles of state and lifecycle logic that can be reused across multiple custom element classes. They're a composable alternative to mixins.
+
+No solution yet. Currently exploring abstracting a base class that both `Viewable` and a hypothetical `Controller` class extend, which orchestrates state and action collection, and view and effect orchestration. Unsure exactly what this will look like, because controller members need to be namespaced separately from the host members, but the view and effects need flat references.
+
+### Philosophical principles
+* **Separation of concerns** — class side's behavioral concerns (imperative, stateful, side effects) vs. view side's rendering concerns (declarative, stateless, pure). Lit and React mix both, leading to a larger API footprint and potential footguns.
+* **Progressive enhancement** — state properties, action methods, and effect methods all still "make sense" without the functionality of the decorators. The view is just a UI blueprint; the function returning it is completely agnostic as to how its rendered (`html` could easily be stubbed) or from where it gets the data.
+* **Semantics decoupled from implementation** — `@state` and `@effect` may one day migrate to signals, but could use a third party signals library; rendering pipeline uses [microtask](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide)-based coalescing, but will one day use an internal [scheduler](https://developer.mozilla.org/en-US/docs/Web/API/Scheduler); rendering engine uses `lit-html`, but may one day be replaced by or rearchitected with [DOM Parts](https://github.com/tbondwilkinson/dom-parts#readme), and to some extent could be replaced with a competitor like [µhtml](https://github.com/WebReflection/uhtml) or [htm/html](https://github.com/developit/htm). Nonetheless, none of the public API will change.
 
 Unlike Lit or React class-based components:
 * The view is strictly a pure function of a state snapshot, and is itself forcibly *stateless* (no r/w access to `this`).
@@ -56,12 +112,6 @@ And unlike React functional components (or Solid, Atomico, et al.), but like Lit
 * Method identity and field/property values persist across renders by default, since they're owned by the node object and remain stable until explicit cleanup or garbage collection.
 
 This allows us to shed from both much of the API footprint and resulting surface area for bugs, without losing a minimum set of features and [production hardening](#production-hardening) measures.
-
-### Goal disclaimer
-This is not aiming to be a library or framework, but more of a contract for mixins and base classes to implement. The idea here is to isolate functional bits that can be swapped out for competitors or eventually replaced by native features. For example:
-* Synchronous view rendering could use `lit/render` (current PoC), `uhtml`, etc., or maybe a native solution ([DOM Parts](https://github.com/tbondwilkinson/dom-parts#readme) might fit the bill depending on shape).
-* Asynchronous view rendering can batch behind a custom debouncer, native [microtask](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide) (current PoC solution), or [scheduler](https://developer.mozilla.org/en-US/docs/Web/API/Scheduler) (better but limited availability).
-* In our current PoC, generated state `set` methods imperatively request a rerender, and effects are imperatively invoked in response. But you could use proxies or a third-party signals library. In the future, [native signals](https://github.com/tc39/proposal-signals) will be the recommended backend approach.
 
 ### Contract
 #### Side effects
@@ -90,59 +140,16 @@ State snapshots are cached until after the next render is complete. This way, th
 
 #### Public API
 ##### View registration
-* PoC signature: `attachView((state: object, actions: object) => TemplateResult): void`
-
 If a shadow root is attached, registers the passed view function for consumption by the [render scheduler](#render-scheduling).
 
 Replaces Lit/class-based React's `render` lifecycle callbacks.
 
-> <details>
->  <summary>Implementation example</summary>
-> 
-> ```js
-> attachView(viewFn) {
->   if(this.#view || !this.shadowRoot) return;
->   this.#view = viewFn;
-> }
-> ```
-> </details>
-
-> <details>
->  <summary>Usage example</summary>
-> 
-> ```js
-> this.attachView(view);
-> ```
-> </details>
-
-**❇️ Recommendation:** For `TemplateResult`, `lit-html` offers highly performant part-level diffing and mature [directives](#directives) solution.
-
 ##### View invalidation (optional)
-* PoC signature: `invalidateView(): void`
-
 A public endpoint for [asynchronous render scheduling](#render-scheduling).
 
 Must not allow passing data through to the view, as this breaks the expected reactive flow.
 
 Replaces Lit's `requestUpdate` utility method, or class-based React's `forceUpdate`.
-
-> <details>
->  <summary>Implementation example</summary>
-> 
-> ```js
-> invalidateView() {
->   this.#renderAsync();
-> }
-> ```
-> </details>
-
-> <details>
->  <summary>Usage example</summary>
-> 
-> ```js
-> this.invalidateView();
-> ```
-> </details>
 
 > <strong>⚠️ Warning:</strong> Imperative view invalidation should be explicitly discouraged.</summary>
 > <details>
@@ -156,7 +163,7 @@ Replaces Lit's `requestUpdate` utility method, or class-based React's `forceUpda
 
 #### Decorators
 ##### `@state({options})`
-State fields/properties trigger rerenders when updated, are readable by the view, mutable by actions, and dependable by effects.
+Bundled in `this[STATE_COLL]`.
 
 If used to create reactive properties, **only decorate the `set` method**, which will both make the property accessible to the view and make the view reactive to its mutation.
 
@@ -171,61 +178,17 @@ If used in combination with `@computed`, **only define a `get` method**. Using a
 Memoized state calculations. Useful, but optional if only relevant to the view function. Only use in combination with `@state` to decorate `get` methods (in which case, the computed property itself is not reactive—its dependencies are).
 
 ##### `@action()`
-Action methods are for mutating state. Auto-bound `this` so they can be used as inline event handlers in the view (all actions passed as an object to the second parameter of the view function).
+Bundled in `this[ACTIONS_COLL]`
   
 ##### `@effect(deps[])`
-Effect methods respond to rerenders (side effects, imperative operations, etc.) and are tracked to specific state dependencies.
+Bundled in `this[EFFECTS_COLL]`
 
 Decorated method gets `last` object for previous state snapshot comparison.
 
 Effects should return callback functions that perform cleanup operations (tear down event listeners, observers, timers, subscriptions, etc.) These will be run automatically in `disconnectedCallback`, as well as each time before an effect is invoked.
 
-```js
-@effect(["delay"]) startPolling() {
-  const interval = setInterval(() => this.poll(), this.delay);
-  return () => clearInterval(interval);
-}
-```
-
-Only use for after-every-render. For after-first-render/once-after-mount, use `@effect.once()`.
-
-### Production hardening
-There are some things provided by Lit or React(-ish libraries) that Viewable wouldn't care about or provide directly. Instead, we have recommendations.
-
-#### Directives
-Useful for reusable state and logic abstractions, aka virtual components.
-
-Virtual components (directives) fundamentally differ from web components (custom elements), in function and purpose. In common between the two is that they're reusable bundles of logic with their own internal state and lifecycle management scheme.
-
-Web components, however, *own* their piece of the UI. Because they have their own shadow roots, their DOM is encapsulated and the styles are scoped. They represent persistent nodes and are thus "hard components".
-
-Virtual components, meanwhile, are useful for either:
-* processing and returning data, according to state and lifecycle management specific to them, to be rendered by the host component, or
-* as a means to simply "copy-and-paste" DOM snippets that can then be exposed to and manipulated by the host component.
-
-We call them "virtual" because there is no trace in the rendered DOM of the virtual component's identity, only its output.
-
-Implementation notes:
-* For PoC, we leverage `lit-html`'s parts API and `lit/directive` to create directives.
-* In the future, something like the proposed DOM Parts API may provide an equivalent backend solution, though we will seek to normalize the public API as currently implemented. The view function may end up being a template reference, but registration and passing data should remain ergonomically identical.
-
-#### Styling
-Unlike Lit, no direct conveniences for styling. We recommend using constructed stylesheets. Made even easier with CSS module scripts, which are not very publicized but usable.
-
-```js
-// Imports as adoptable CSSStyleSheet
-import styles from "./my-component.css" with {type: "css"};
-
-class MyComponent extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({mode: "open"});
-    this.shadowRoot.adoptedStyleSheets = [styles];
-  }
-}
-```
-
-CSS type assertions aren't well supported, but easily handled by bundlers. Here's a [small Rollup plugin for doing so](https://github.com/jacecotton/rollup-plugin-esm-css-types). Drop when browser support permits.
+###### `@effect.once()`
+After-first-render instead of after-every-render effects.
 
 #### Known issues
 ##### Will address
@@ -233,6 +196,7 @@ CSS type assertions aren't well supported, but easily handled by bundlers. Here'
 * Testability—modularizing views and decorated fields make testing theoretically easy, but actual utilities need to be developed.
 * Internal testing—PoC implementation needs robust testing (performance, edge cases, etc.)
 * SSR support? May just inherit from Lit. Track conversation for relevant standards proposals.
+* Composition with controllers?
 
 ##### Won't address
 * Suspense/skeleton pattern—for now, recommended to render skeletons conditionally based on load state updates. Skeleton components themselves can be part of downstream libs.
