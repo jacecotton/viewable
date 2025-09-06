@@ -94,7 +94,7 @@ Reflected properties are then made reactive through `super.attributeChangedCallb
 
 ### Constraints
 #### Pure views
-Views are meant to be a pure, static blueprint. Footguns can easily be reintroduced by reading/writing `window` or `document`, or using browser APIs directly. Instead, mediate through the component class, state assignment, and effects.
+Views are meant to be a pure, static blueprint (no `this`). Footguns can easily be reintroduced by reading/writing `window` or `document`, or using browser APIs directly. Instead, mediate through the component class, state assignment, and effects.
 
 #### No reactive lifecycle hooks
 Unlike `LitElement`, Viewable does not expose monolithic lifecycle hooks.
