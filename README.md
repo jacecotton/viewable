@@ -118,10 +118,10 @@ Most potential advantages derive from having [no monolithic lifecycle hooks](#no
 Most potential advantages derive from embracing, isolating, and progressively enhancing the object-oriented approach of the custom elements API, rather than ditching it.
 
 * Since state values are just upgraded object properties, and the view only ever reads from a state snapshot at render time, no stale closure issues (no `useState`-like set functions necessary).
-* Since effects and actions are just upgraded object methods, method identity remains stable across renders by default (unlike `useEffect`; `useCallback` rendered N/A).
-* References stored in regular object fields/properties persist across renders (no `useRef` necessary).
+* Since effects and actions are just upgraded object methods, method identity remains stable across renders by default (unlike `useEffect`; `useCallback` N/A).
+* References stored in regular object fields/properties persist across renders (`useRef` N/A).
 
-Keeping views pure functional without relying on React's escape hatches maintains many of the advantages of React's functional approach, but without hook fatigue.
+Keeping views pure functional without relying on React's escape hatches maintains many of the advantages of React's functional approach, but without most of the hook fatigue and gotchas.
 
 ## Roadmap
 ### Context and signals
