@@ -156,3 +156,7 @@ No clue yet, possibly won't solve.
 Considering littering the `Viewable` class and decorator functions with hooks. This way:
 * you could optionally import/enable a debug library that populates `console.debug` messages via the hooks
 * you could use the hooks to extend functionality and interoperability with other libraries/APIs
+
+## Not documented here
+* **Styling**—constructable stylesheets are recommended though.
+* **Templating bindings**—refer to `lit-html` documentation.
