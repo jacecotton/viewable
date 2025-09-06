@@ -117,7 +117,7 @@ Most potential advantages derive from having [no monolithic lifecycle hooks](#no
 
 Most potential advantages derive from embracing, isolating, and progressively enhancing the object-oriented approach of the custom elements API, rather than ditching it.
 
-* Since state values are just upgraded object properties, no stale closure issues as with `useState`.
+* Since state values are just upgraded object properties, no stale closure issues (no `useState` set functions).
 * Since effects and actions are just upgraded object methods, method identity remains stable across renders by default (unlike `useEffect`; `useCallback` rendered N/A).
 * References stored in regular object fields/properties persist across renders (no `useRef` necessary).
 
