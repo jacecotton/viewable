@@ -38,21 +38,20 @@ export const view = ({count, label}, {increment}) => html`
 ```
 
 ## Views
-A view should be a pure, stateless, composable UI blueprint.
+Views are pure, stateless, composable UI blueprints.
 
 Tagged template literals (with `lit-html/html`) for precise, efficient part-level DOM updates.
 
 ### `attachView`
 Pass a function that returns an HTML template to use as the component's shadow DOM.
 
-`attachView` automatically passes a snapshot copy of the state at time of rendering, as well as stable references to any action methods. Don't attempt to do so explicitly.
-    
-### `invalidateView`
-Secret. Don't use.
+`attachView` automatically passes a snapshot copy of the state at time of rendering, as well as stable references to any action methods.
 
 ## Decorators
 ### `@state`
-`@state` properties cause re-renders and effect re-runs when updated. Usable by the view and effects as dependencies.
+`@state` properties cause view rerenders and effect reruns when updated.
+
+Usable by the view and effects as dependencies.
   
 If used to create reactive properties, **only decorate the `set` method**, which will both make the property accessible to the view and make the view reactive to its mutation.
 
@@ -82,7 +81,7 @@ After-first-render instead of after-every-render effects.
 ## Contract
 ### Side effects
 #### `observedAttributes` and `attributeChangedCallback`
-Attributes listed in `observedAttributes` automatically get reflected as internal properties with slugified names (`my-attr=""` &rarr; `this.myAttr`), synchronized to the DOM with `get`/`setAttribute`.
+Attributes listed in `observedAttributes` automatically get reflected as internal properties with camelCased names (`my-attr=""` &rarr; `this.myAttr`), synchronized to the DOM with `get`/`setAttribute`.
 
 Reflected properties are then made reactive through `super.attributeChangedCallback`, which triggers a rerender and reruns effects.
 
@@ -94,7 +93,7 @@ Reflected properties are then made reactive through `super.attributeChangedCallb
 
 ### Constraints
 #### Pure views
-Views are meant to be a pure, static blueprint (no `this`). Footguns can easily be reintroduced by reading/writing `window` or `document`, or using browser APIs directly. Instead, mediate through the component class, state assignment, and effects.
+Views are meant to be a pure, static blueprint (no `this`). Footguns can easily be reintroduced by reading/writing `window` or `document`, or using browser APIs directly.
 
 #### No reactive lifecycle hooks
 Unlike `LitElement`, Viewable does not expose monolithic lifecycle hooks.
@@ -106,15 +105,13 @@ For the most part, that's what `@effect` (instead of `updated`) or `@effect.once
 `@computed` is mainly intended to memoize expensive calculations, but also for performing quick "post-mutate, pre-render" calculations (instead of `willUpdate`).
 
 #### Requires shadow DOM
-No `createRenderRoot`, as by convention, the view is the sole domain of the shadow DOM, and vice versa.
+No `createRenderRoot`, as by convention, the view is the sole domain of the shadow DOM and vice versa.
 
 ## Advantages
 ### Over `LitElement`
 Most potential advantages derive from having [no monolithic lifecycle hooks](#no-reactive-lifecycle-hooks) and encouraging [pure views](#pure-views), potentially minimizing the surface area for bugs and making debugging and tracking data flows easier.
 
 ### Over Atomico
-*(Or React-like custom element libraries in general.)*
-
 Most potential advantages derive from embracing, isolating, and progressively enhancing the object-oriented approach of the custom elements API, rather than ditching it.
 
 * Since state values are just upgraded object properties, and the view only ever reads from a state snapshot at render time, no stale closure issues (no `useState`-like set functions necessary).
