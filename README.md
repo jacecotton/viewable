@@ -1,4 +1,4 @@
-Reactivity semantics for custom elements, implemented by native decorators (see [tc39/proposal-decorators](https://github.com/tc39/proposal-decorators), [@babel/plugin-proposal-decorators](https://babeljs.io/docs/babel-plugin-proposal-decorators)).
+Reactivity semantics and views for custom elements, implemented with native decorators (see [tc39/proposal-decorators](https://github.com/tc39/proposal-decorators), [@babel/plugin-proposal-decorators](https://babeljs.io/docs/babel-plugin-proposal-decorators)).
 
 ```js
 // click-counter.js
@@ -45,7 +45,7 @@ Tagged template literals (with `lit-html/html`) for precise, efficient part-leve
 ### `attachView`
 Pass a function that returns an HTML template to use as the component's shadow DOM.
 
-`attachView` automatically passes a snapshot copy of the state at time of rendering, as well as stable references to any action methods.
+`attachView` automatically passes a snapshot copy of the state at render time, as well as stable references to any action methods.
 
 ## Decorators
 ### `@state`
