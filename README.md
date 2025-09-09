@@ -140,9 +140,6 @@ Can already use Lit's directives today, which allow for creating "virtual compon
 
 Controllers would allow you to reuse bundles of stateful logic and behavior across component *classes*, which is a bit trickier. We have a unique reactivity system, so we can't just lift Lit's Reactive Controllers. Our first task is to solve for namespacing, since views and effects expect flat references for dependencies.
 
-### Reducers
-Answer to React's `useReducer()`?
-
 ### Typing support
 How can views know arg types?
 
