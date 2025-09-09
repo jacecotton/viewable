@@ -147,7 +147,7 @@ How can views know arg types?
 Modularized views and semantic members make testing theoretically easy, but actual utilities need to be developed.
 
 ### SSR support
-No clue yet, possibly won't solve.
+Need to research whether Lit's experimental SSR can work with just `lit-html`. It seems to leave part UUIDs as HTML comments for this purpose.
 
 ### Debugging and extensibility
 Considering littering the `Viewable` class and decorator functions with hooks. This way:
