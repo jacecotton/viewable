@@ -22,10 +22,12 @@ class ClickCounter extends Viewable(HTMLElement) {
 
   @effect.once() mounted() {
     console.log("Component has rendered.");
+    return () => console.log("Component has dismounted.");
   }
 
   @effect(["count"]) debugCount(last) {
     console.debug(`this.count updated from ${last.count} to ${this.count}`);
+    return console.clear;
   }
 }
 
