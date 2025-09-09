@@ -20,6 +20,10 @@ class ClickCounter extends Viewable(HTMLElement) {
     this.count++;
   }
 
+  @effect.once() mounted() {
+    console.log("Component has rendered.");
+  }
+
   @effect(["count"]) debugCount(last) {
     console.debug(`this.count updated from ${last.count} to ${this.count}`);
   }
