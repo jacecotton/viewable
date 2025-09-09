@@ -121,7 +121,7 @@ Most potential advantages derive from embracing, isolating, and progressively en
 Keeping views pure functional without relying on React's escape hatches maintains many of the advantages of React's functional approach, but without most of the hook fatigue and gotchas.
 
 ## Roadmap
-### Context and signals
+### Shared state
 To answer React's `useContext` and `lit/context`, considering `@provide` and `@consume`, where "provider" component would share its `@state` collection with the "consumer" component's reactivity system (view and effects).
 
 Also watching [tc39/proposal-signals](https://github.com/tc39/proposal-signals) (stage 1), which not only could power context, but could also be a great solution for truly global, shared state.
@@ -135,7 +135,7 @@ Lit's renderer is probably the best out there for our purposes, but technically 
 
 Keeping an eye on the [DOM Parts proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/DOM-Parts.md), which, depending on the direction it ultimately goes in, might be a replacement for `lit-html`.
 
-### Directives and controllers
+### Reusable logic
 Can already use Lit's directives today, which allow for creating "virtual components", or reusing bundles of stateful logic across component views.
 
 Controllers would allow you to reuse bundles of stateful logic and behavior across component *classes*, which is a bit trickier. We have a unique reactivity system, so we can't just lift Lit's Reactive Controllers. Our first task is to solve for namespacing, since views and effects expect flat references for dependencies.
