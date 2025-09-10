@@ -133,7 +133,8 @@ This would come with significant considerations and leaves many open questions:
 * Might need to consider adding phase control for effects (`"layout" | "passive" | "postrender"`).
 * Does `ComponentA` ever run `ComponentB`'s effects? Especially, for example, `@effect.once` methods?
 * Debugging is going to be especially important—dependency graphs, data flows, etc. could get complicated depending on implementation and downstream usage.
-* Does `HeadlessComponent` have the ability to hook into a host's lifecycle at all? It's not a custom element, and theoretically it shouldn't need to with its own collection of state and effects.
+* Does `HeadlessComponent` have the ability to hook into a host's lifecycle at all? It's not a custom element, and theoretically it shouldn't need to with its own collection of state and effects (especially if we add phase).
+  * The only compelling use case I can see is for form elements. I believe they have their own lifecycle hook unrelated to the actual component's connection/adoption. Also, technically components can acceptably leave certain traces or remain persistent across connection/adoption of instances (such as re-adoption). If this turns out to be practically useful, it'd be easy to add in. Leaning toward not supporting for v1.
 
 ## Contract
 ### Side effects
