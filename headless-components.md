@@ -4,4 +4,5 @@ It's "headless" because in this case the component is not a custom element, has 
 
 It "renders" something simply by setting a public property that's observable by a reactive rendering entity (i.e. a viewable component's views and effects).
 
-The headless component is aware of the host's context, but cannot set properties on it directly—instead, like a view, it only gets a bound reference to the host's `@action` methods, which it can invoke (unlike a view).
+## Questions
+* To what extent is the headless component aware of the host's context? It should neither duplicate nor implement any eventual *context API* per se (as between parent and child elements), but should it be able to read or set the host's state, or invoke any action methods? Doing so should be theoretically safe, but my first instinct is that it'd be a misuse of what's intended. Controllers should set their own state with their own action methods and run their own effects in response; but that prompts the question of what a headless component's effects would even do? In this case it wouldn't manipulate DOM, it'd basically strictly be an abstraction layer for interacting with browser APIs (timers, observers, etc.) and other external resources (global state, network interactions, etc.)
