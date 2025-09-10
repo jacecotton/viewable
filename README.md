@@ -20,14 +20,8 @@ class ClickCounter extends Viewable(HTMLElement) {
     this.count++;
   }
 
-  @effect.once() mounted() {
-    console.log("Component has rendered.");
-    return () => console.log("Component has dismounted.");
-  }
-
   @effect(["count"]) debugCount(last) {
     console.debug(`this.count updated from ${last.count} to ${this.count}`);
-    return console.clear;
   }
 }
 
@@ -37,59 +31,73 @@ customElements.define("click-counter", ClickCounter);
 // click-counter.view.js
 import {html} from "viewable";
 
-export const view = ({count, label}, {increment}) => html`
-  <button @click="${increment}">${label}</button>
-  <p>Clicked ${count} times</p>
-`;
+export const view = (state, actions) => {
+  const {label, count} = state;
+  const {increment} = actions;
+
+  return html`
+    <button @click="${increment}">${label}</button>
+    <p>Clicked ${count} times</p>
+  `;
+};
 ```
 
 ## Views
-Views are pure, stateless, composable UI blueprints.
+Views are stateless (no `this`) and composable UI blueprints.
 
-Tagged template literals (with `lit-html/html`) for precise, efficient part-level DOM updates.
+Use tagged template literals (`html`) to break up the template into "parts" that can be individually updated.
 
 ### `attachView`
-Pass a function that returns an HTML template to use as the component's shadow DOM.
+Pass a function that returns a view to use as the component's shadow DOM.
 
-`attachView` automatically passes a snapshot copy of the state at render time, as well as stable references to any action methods.
+`attachView` automatically passes a snapshot of [`@state` properties](#state) at render time, as well as bound references to any [`@action` methods](#action).
 
 ## Decorators
 ### `@state`
-`@state` properties cause view rerenders and effect reruns when updated.
-
-Usable by the view and effects as dependencies.
+Updates to `@state` properties re-render the view and re-run corresponding effects, and are usable by both as internal dependencies.
   
-If used to create reactive properties, **only decorate the `set` method**, which will both make the property accessible to the view and make the view reactive to its mutation.
+If used to create a reactive *property*, **only decorate the `set` method**. This will make the view/effects reactive to property mutation and make the property accessible to the view/effects.
 
 If used in combination with `@computed`, **only define a `get` method**. Using a setter in this case doesn't make sense.
 
-`options`:
-* `[reactive=(previous, next) => false]`: The condition under which a state update should invalidate the view, based on its previous/old and next/new values.
-* `[coerce=next => next]`: Transform the value when setting, useful for type coercion (e.g. `{coerce: Number}`) or data normalization (e.g. `{coerce: v => v.trim()}`).
-* `[equals=Object.is(previous, next)]`: Custom comparator function (what counts as a change). Useful for diffing against specific keys within a state prop object (e.g. `(previous, next) => Object.is(previous.id, next.id)`), or using different identity primitives (e.g., switch to strict comparison via `(previous, next) => previous === next`).
+Options:
+* `reactive: (previous, next) => false`: The condition under which a state update should trigger an update, based on its previous and next values.
+* `coerce: next₁ => next₂`: Transform the value when setting, useful for type coercion (e.g. `{coerce: Number}`) or data normalization (e.g. `{coerce: v => v.trim()}`).
+* `equals: (previous, next) => true`: Custom comparator function (what counts as a change). Useful for diffing against specific keys within a state prop object (e.g. `(previous, next) => Object.is(previous.id, next.id)`), or using different identity primitives (e.g., switch to strict comparison via `(previous, next) => previous === next`).
   
 #### `@computed()`
 Memoized state calculations. Useful, but optional if only relevant to the view function. Only use in combination with `@state` to decorate `get` methods (in which case, the computed property itself is not reactive—its dependencies are).
 
 ### `@action()`
-`@action` methods mutate state in response to the outside world (user events, DOM observers, network responses, etc.) Auto-bound `this` and passed to the view so they can be used as event handlers.
+`@action` methods mutate state in response to the outside world (user events, DOM observers, network responses, etc.) Automatically bound and passed to the view so they can be used as event handlers. Must expect/pass no other arguments except the `event` object.
   
 ### `@effect()`
-`@effect` methods handle any "side effects" of state changes, running after a listed state dependency is udpated and the resulting rerender has been completed.
+`@effect` methods handle any "side effects" of state changes, running after a listed state dependency is updated and the resulting re-render has been completed.
   
-Decorated method gets `last` object for previous state snapshot comparison.
+Method gets `last` object for previous state comparison.
 
-Effects should return callback functions that perform cleanup operations (tear down event listeners, observers, timers, subscriptions, etc.) These will be run automatically in `disconnectedCallback`, as well as each time before an effect is invoked.
+Effects should return callback functions that perform cleanup operations (remove event listeners, observers, timers, subscriptions, etc.) These will be run automatically in `disconnectedCallback`, as well as each time before an effect is invoked.
 
 #### `@effect.once()`
-After-first-render instead of after-every-render effects.
+After-first-render instead of after-every-render effects. No dependency array.
+
+## Higher-order concepts
+### Context and signals
+Shared state:
+* Parent &rarr; child: context (no solution yet)
+* Global: signals (no integration yet; conceptually easy, keeping an eye on ts39 signals proposal)
+
+### Directives and controllers
+Reusable logic:
+* Reactive view fragments: directives (use `lit/directive`)
+* Reactive class behavior: controllers (no solution yet)
 
 ## Contract
 ### Side effects
 #### `observedAttributes` and `attributeChangedCallback`
 Attributes listed in `observedAttributes` automatically get reflected as internal properties with camelCased names (`my-attr=""` &rarr; `this.myAttr`), synchronized to the DOM with `get`/`setAttribute`.
 
-Reflected properties are then made reactive through `super.attributeChangedCallback`, which triggers a rerender and reruns effects.
+Reflected properties are then made reactive through `super.attributeChangedCallback`, which triggers a re-render and re-runs effects.
 
 #### `connectedCallback`
 `super.connectedCallback` schedules the view's first render.
@@ -98,15 +106,15 @@ Reflected properties are then made reactive through `super.attributeChangedCallb
 `super.disconnectedCallback` runs all effect callbacks for cleanup/teardown, helpful to avoid memory leaks and reverse side effects.
 
 ### Constraints
-#### Pure views
-Views are meant to be a pure, static blueprint (no `this`). Footguns can easily be reintroduced by reading/writing `window` or `document`, or using browser APIs directly.
+#### Stateless views
+Views are meant to be a stateless blueprint (no `this`). Footguns can easily be introduced by reading/writing `window` or `document`, or using browser APIs directly, so don't do that.
 
 #### No reactive lifecycle hooks
 Unlike `LitElement`, Viewable does not expose monolithic lifecycle hooks.
 
 For the most part, that's what `@effect` (instead of `updated`) or `@effect.once` (instead of `firstUpdated`) are for—atomic, modularized reactions to state changes.
 
-`@state({equals})` can be used as a "should mutate this property at all" test, while `@state({reactive})` can be used as a "should cause a rerender and effect rerun" test (instead of `shouldUpdate`).
+`@state({equals})` can be used as a "should mutate this property at all" test, while `@state({reactive})` can be used as a "should cause a re-render and effect re-run" test (instead of `shouldUpdate`).
 
 `@computed` is mainly intended to memoize expensive calculations, but also for performing quick "post-mutate, pre-render" calculations (instead of `willUpdate`).
 
@@ -115,25 +123,18 @@ No `createRenderRoot`, as by convention, the view is the sole domain of the shad
 
 ## Advantages
 ### Over `LitElement`
-Most potential advantages derive from having [no monolithic lifecycle hooks](#no-reactive-lifecycle-hooks) and encouraging [pure views](#pure-views), potentially minimizing the surface area for bugs and making debugging and tracking data flows easier.
+Most potential advantages derive from having [no monolithic lifecycle hooks](#no-reactive-lifecycle-hooks) and encouraging [stateless views](#stateless-views), potentially minimizing the surface area for bugs and making debugging and tracking data flows easier.
 
 ### Over Atomico
 Most potential advantages derive from embracing, isolating, and progressively enhancing the object-oriented approach of the custom elements API, rather than ditching it.
 
 * Since state values are just upgraded object properties, and the view only ever reads from a state snapshot at render time, no stale closure issues (no `useState`-like set functions necessary).
-* Since effects and actions are just upgraded object methods, method identity remains stable across renders by default (unlike `useEffect`; `useCallback` N/A).
+* Since effects and actions are just upgraded object methods, function identity remains stable across renders by default (unlike `useEffect`; `useCallback` N/A).
 * References stored in regular object fields/properties persist across renders (`useRef` N/A).
 
-Keeping views pure functional without relying on React's escape hatches maintains many of the advantages of React's functional approach, but without most of the hook fatigue and gotchas.
+Keeping views stateless without relying on React's escape hatches maintains many of the advantages of React's functional approach, but without most of the hook fatigue and gotchas.
 
 ## Roadmap
-### Shared state
-To answer React's `useContext` and `lit/context`, considering `@provide` and `@consume`, where "provider" component would share its `@state` collection with the "consumer" component's reactivity system (view and effects).
-
-Also watching [tc39/proposal-signals](https://github.com/tc39/proposal-signals) (stage 1), which not only could power context, but could also be a great solution for truly global, shared state.
-
-It could even be what powers `@state` and `@effect` under the hood. In the meantime, might even adopt a third party signals library, like [`preactjs/signals`](https://github.com/preactjs/signals).
-
 ### Alternative renderers
 Currently using [`lit-html`](https://lit.dev/docs/libraries/standalone-templates/)'s renderer under the hood, and re-exporting `html` for authoring views. Using it also lets authors steal its [directives](https://lit.dev/docs/templates/directives/) system.
 
@@ -141,15 +142,8 @@ Lit's renderer is probably the best out there for our purposes, but technically 
 
 Keeping an eye on the [DOM Parts proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/DOM-Parts.md), which, depending on the direction it ultimately goes in, might be a replacement for `lit-html`.
 
-### Reusable logic
-Can already use Lit's directives today, which allow for creating "virtual components", or reusing bundles of stateful logic across component views.
-
-Controllers would allow you to reuse bundles of stateful logic and behavior across component *classes*, which is a bit trickier. We have a unique reactivity system, so we can't just lift Lit's Reactive Controllers.
-
-Our first task is to solve for namespacing, since views and effects expect flat references for dependencies. I'm thinking colon separation, e.g. `provider:foo`.
-
 ### Typing support
-How can views know arg types?
+How can views know state property and action return types?
 
 ### Testing support
 Modularized views and semantic members make testing theoretically easy, but actual utilities need to be developed.
@@ -158,11 +152,12 @@ Modularized views and semantic members make testing theoretically easy, but actu
 Need to research whether Lit's experimental SSR can work with just `lit-html`. It seems to leave part UUIDs as HTML comments for this purpose.
 
 ### Debugging and extensibility
-Considering littering the `Viewable` class and decorator functions with hooks. This way:
+Considering littering the `Viewable` class and decorator functions with lifecycle hooks after all.
+
+Specific advantages besides custom element classes:
 * you could optionally import/enable a debug library that populates `console.debug` messages via the hooks
-* you could use the hooks to extend functionality and interoperability with other libraries/APIs
-* this may even be useful for controllers
+* you could use the hooks to extend functionality and interoperability with other libraries/APIs (or even one's own controllers)
 
 ## Not documented here
-* **Styling**—constructable stylesheets are recommended though.
-* **Template bindings**—refer to `lit-html` documentation.
+* **Styling**—constructable stylesheets are recommended though
+* **Template bindings**—refer to `lit-html` documentation
