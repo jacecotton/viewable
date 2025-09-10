@@ -2,10 +2,10 @@ Reactivity semantics and views for custom elements, implemented with native deco
 
 ```js
 // click-counter.js
-import {Viewable, state, action, effect} from "viewable";
+import {ViewableComponent, state, action, effect} from "viewable";
 import {view} from "./click-counter.view.js";
 
-class ClickCounter extends Viewable(HTMLElement) {
+class ClickCounter extends ViewableComponent {
   static observedAttributes = ["label"];
 
   @state() count = 0;
@@ -91,6 +91,49 @@ Shared state:
 Reusable logic:
 * Reactive view fragments: directives (use `lit/directive`)
 * Reactive class behavior: controllers (no solution yet)
+
+#### Controller exploration
+Under consideration is a `ViewableComponent` and then a `HeadlessComponent`. Both would extend a `ReactiveComponent` class that handles most internals—state, actions, effects, lifecycle—but only a `ViewableComponent` would be able to attach and render a view. A `HeadlessComponent` could then either stand alone, or be able to be registered as a controller for a `ViewableComponent`.
+
+The way this would work is that you would namespace the headless component during registration, and then all of the dependencies upstreamed from the controller would be accessible to the host component.
+
+```js
+// ViewableComponent extends ReactiveComponent with view internals and lifecycle.
+class ComponentA extends ViewableComponent {
+  @state() baz = "qux";
+
+  // ComponentB is instanced by ComponentA instantiation.
+  @controller(ComponentB) b;
+
+  constructor() {
+    super();
+    // Since attachShadow is a requirement of attachView, we should just
+    // abstract it. A "view" implies a shadow root.
+    this.attachView(view);
+  }
+
+  @effect(() => ["baz", this.b.foo]) respond() {
+    console.log(`Component A sees Component A baz`, this.baz);
+    console.log(`Component A sees Component B foo`, this.b.foo);
+  }
+}
+
+// HeadlessComponent runs ReactiveComponent in headless mode.
+class ComponentB extends HeadlessComponent {
+  @state() foo = "bar";
+
+  @effect.once() mount() {
+    this.foo = "baz";
+  }
+}
+```
+
+This would come with significant considerations and leaves many open questions:
+* Effect deps can now accept a function that returns an array and is then bound by the decorator. This would require some sort of hash-matching against the dependency collection generated at initialization, which could get weird. The alternative is to keep a flat array, but namespace the dependencies (e.g. `["baz", "b:foo"]`), but this seems more brittle and less idiomatic/more magical.
+* Might need to consider adding phase control for effects (`"layout" | "passive" | "postrender"`).
+* Does `ComponentA` ever run `ComponentB`'s effects? Especially, for example, `@effect.once` methods?
+* Debugging is going to be especially important—dependency graphs, data flows, etc. could get complicated depending on implementation and downstream usage.
+* Does `HeadlessComponent` have the ability to hook into a host's lifecycle at all? It's not a custom element, and theoretically it shouldn't need to with its own collection of state and effects.
 
 ## Contract
 ### Side effects
