@@ -161,6 +161,7 @@ Need to research whether Lit's experimental SSR can work with just `lit-html`. I
 Considering littering the `Viewable` class and decorator functions with hooks. This way:
 * you could optionally import/enable a debug library that populates `console.debug` messages via the hooks
 * you could use the hooks to extend functionality and interoperability with other libraries/APIs
+* this may even be useful for controllers
 
 ## Not documented here
 * **Styling**—constructable stylesheets are recommended though.
