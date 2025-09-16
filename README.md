@@ -103,7 +103,7 @@ class ComponentA extends ViewableComponent {
   @state() baz = "qux";
 
   // ComponentB is instanced by ComponentA instantiation.
-  @controller(ComponentB) b;
+  @controller() b = new ComponentB(this);
 
   constructor() {
     super();
