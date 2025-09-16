@@ -85,7 +85,7 @@ After-first-render instead of after-every-render effects. No dependency array.
 ### Context and signals
 Shared state:
 * Parent &rarr; child: context (no solution yet)
-* Global: signals (no integration yet; conceptually easy, keeping an eye on ts39 signals proposal)
+* Global: signals (no integration yet; conceptually easy, keeping an eye on tc39 signals proposal)
 
 ### Directives and controllers
 Reusable logic:
@@ -192,9 +192,6 @@ How can views know state property and action return types?
 ### Testing support
 Modularized views and semantic members make testing theoretically easy, but actual utilities need to be developed.
 
-### SSR support
-Need to research whether Lit's experimental SSR can work with just `lit-html`. It seems to leave part UUIDs as HTML comments for this purpose.
-
 ### Debugging and extensibility
 Considering littering the `Viewable` class and decorator functions with lifecycle hooks after all.
 
@@ -205,3 +202,4 @@ Specific advantages besides custom element classes:
 ## Not documented here
 * **Styling**—constructable stylesheets are recommended though
 * **Template bindings**—refer to `lit-html` documentation
+* **SSR support**—Same story as Lit's (see [`lit-labs/ssr`](https://lit.dev/docs/ssr/overview/))
