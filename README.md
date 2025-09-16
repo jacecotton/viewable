@@ -131,7 +131,8 @@ class ComponentB extends HeadlessComponent {
 This would come with significant considerations and leaves many open questions:
 * Effect deps can now accept a function that returns an array and is then bound by the decorator. This would require some sort of hash-matching against the dependency collection generated at initialization, which could get weird. The alternative is to keep a flat array, but namespace the dependencies (e.g. `["baz", "b:foo"]`), but this seems more brittle and less idiomatic/more magical.
 * Might need to consider adding phase control for effects (`"layout" | "passive" | "postrender"`).
-* Does `ComponentA` ever run `ComponentB`'s effects? Especially, for example, `@effect.once` methods?
+* `ComponentA` never runs `ComponentB`'s effects—`ComponentB` runs its own effects in response to internal state changes—however, `ComponentB` state can be a dependency for `ComponentA`'s effects.
+  * For `effect.once()` of headless components, we need to decide whether they should be run from the constructor or `connectedCallback`. If the latter, then we need to make sure `HeadlessComponent` can implement a prototypal `connectedCallback` that the instance will then pass through to the host component's hook.
 * Debugging is going to be especially important—dependency graphs, data flows, etc. could get complicated depending on implementation and downstream usage.
 * `HeadlessComponent` needs to be able to hook into the lifecycle of the host component because that's what a *controller* is—it's basically able to manipulate any part of the host component but as a safe, namespaced "shadow".
 
