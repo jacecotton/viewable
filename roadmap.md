@@ -19,8 +19,6 @@ The theme will be production hardening, performance, and developer experience.
 The theme will be improving abstraction, reusability, composability, etc.
 
 * Controllers (`HeadlessComponent`, extends `ReactiveComponent`)
-  * `@effect` patch—respond to controller state
-  * Upstream built-in lifecycle callbacks
 * Signals migration for `@observable`
 * Signals-based implementation of context and global state management
 
