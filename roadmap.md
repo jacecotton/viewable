@@ -1,7 +1,7 @@
 ## v1.0
 The theme will be MVP.
 
-* `ViewableComponent` mixin (extends `ReactiveComponent` base class)
+* `Viewable` mixin (for `HTMLElement`)
 * `observedAttributes` reflection
 * `attachView`, `lit-html`, directives
 * `@observable`, `@computed`, `@action`, `@effect`, `@effect.once` semantics
@@ -18,7 +18,7 @@ The theme will be production hardening, performance, and developer experience.
 ## v1.2
 The theme will be improving abstraction, reusability, composability, etc.
 
-* Controllers (`HeadlessComponent`, extends `ReactiveComponent`)
+* Controllers (`ReactiveController`, `@controller` decorator for `Viewable`)
 * Signals migration for `@observable`
 * Signals-based implementation of context and global state management
 
