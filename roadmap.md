@@ -1,4 +1,4 @@
-## Version 1
+## v1.0
 The theme will be MVP.
 
 * `ViewableComponent` mixin (extends `ReactiveComponent` base class)
@@ -7,7 +7,7 @@ The theme will be MVP.
 * `@observable`, `@computed`, `@action`, `@effect`, `@effect.once` semantics
 * Debug &amp; extension hooks
 
-## Version 2
+## v1.2
 The theme will be production hardening, performance, and developer experience.
 
 * SSR — can likely lift Lit's directly if we use `lit-html`
@@ -15,7 +15,7 @@ The theme will be production hardening, performance, and developer experience.
 * Testing utilities
 * Hooks-based debug library
 
-## Version 3
+## v1.3
 The theme will be improving abstraction, reusability, composability, etc.
 
 * Controllers (`HeadlessComponent`, extends `ReactiveComponent`)
