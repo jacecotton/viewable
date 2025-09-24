@@ -63,7 +63,7 @@ If used in combination with `@computed`, **only define a `get` method**. Using a
 Options:
 * `reactive: (previous, next) => false`: The condition under which a state update should trigger an update, based on its previous and next values.
 * `coerce: next₁ => next₂`: Transform the value when setting, useful for type coercion (e.g. `{coerce: Number}`) or data normalization (e.g. `{coerce: v => v.trim()}`).
-* `equals: (previous, next) => true`: Custom comparator function (what counts as a change). Useful for diffing against specific keys within a state prop object (e.g. `(previous, next) => Object.is(previous.id, next.id)`), or using different identity primitives (e.g., switch to strict comparison via `(previous, next) => previous === next`).
+* `equals: (previous, next) => true`: Custom comparator function (what counts as a change). Useful for comparing specific keys within a state prop object (e.g. `(previous, next) => Object.is(previous.id, next.id)`), or using different equality thresholds (e.g., switch to strict comparison via `(previous, next) => previous === next`).
   
 #### `@computed()`
 Memoized state calculations. Useful, but optional if only relevant to the view function. Only use in combination with `@observable` to decorate `get` methods (in which case, the computed property itself is not reactive—its dependencies are).
