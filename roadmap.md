@@ -1,4 +1,4 @@
-## v1.0
+## v0.1
 The theme will be MVP.
 
 * `Viewable` mixin (for `HTMLElement`)
@@ -7,7 +7,7 @@ The theme will be MVP.
 * `@observable`, `@computed`, `@action`, `@effect`, `@effect.once` semantics
 * Debug &amp; extension hooks
 
-## v1.1
+## v0.2
 The theme will be production hardening, performance, and developer experience.
 
 * SSR — can likely lift Lit's directly if we use `lit-html`
@@ -15,7 +15,7 @@ The theme will be production hardening, performance, and developer experience.
 * Testing utilities
 * Hooks-based debug library
 
-## v1.2
+## v1.0
 The theme will be improving abstraction, reusability, composability, etc.
 
 * Controllers (`ReactiveController`, `@controller` decorator for `Viewable`)
