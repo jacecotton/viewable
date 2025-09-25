@@ -26,5 +26,5 @@ The theme will be improving abstraction, reusability, composability, etc.
 * DOM Parts / Declarative Custom Elements synthesis
 
 ## To be placed
-Not sure when to tackle/how important:
+Not sure when to tackle/whether in scope:
 * Cross-boundary idrefs for ARIA
