@@ -80,6 +80,8 @@ Memoized state calculations. Useful, but optional if only relevant to the view f
   
 Method gets `last` object for previous state comparison.
 
+Never mutate state inside an `@effect`, as this can cause infinite loops—use `@computed` instead.
+
 Effects should return callback functions that perform cleanup operations (remove event listeners, observers, timers, subscriptions, etc.) These will be run automatically in `disconnectedCallback`, as well as each time before an effect is invoked.
 
 #### `@effect.once()`
@@ -94,7 +96,7 @@ Shared state:
 ### Directives and controllers
 Reusable logic:
 * Reactive view fragments: directives (use `lit/directive`)
-* Reactive class behavior: controllers (no solution yet)
+* Reactive class behavior: controllers (see [exploration](controllers.md))
 
 ## Contract
 ### Side effects
