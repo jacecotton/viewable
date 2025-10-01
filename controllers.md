@@ -5,4 +5,4 @@ Controllers are objects that hook into a component's reactive lifecycle, for the
 * In other words, the host owns state and lifecycle, while controllers help compose logic and behavior. Controllers are privileged internal collaborators, not autonomous components.
 * If you find yourself needing the host to react to controller state, then that state should be moved up to the host(s).
 * Likewise, controllers cannot define their own effects. Controllers *provide capabilities* (invocable methods, attached listeners and observers), they do not *implement policies* (effects, i.e. "how the host should respond to state changes").
-* This establishes clear ownership, preventing hidden dependencies, making tracing data flows easier, and improving testability.
+* This establishes clear ownership, preventing hidden dependencies, making tracing data flows easier, preventing infinite loops, and improving testability.
