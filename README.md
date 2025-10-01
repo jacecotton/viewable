@@ -6,20 +6,26 @@ import {ViewableComponent, state, action, effect} from "viewable";
 import {view} from "./click-counter.view.js";
 
 class ClickCounter extends ViewableComponent(HTMLElement) {
+  // Define props as observed attributes.
   static observedAttributes = ["label"];
 
+  // ...or as regular properties decorated with @observable.
   @observable() count = 0;
 
   constructor() {
     super();
     this.attachShadow({mode: "open"});
+    // Attach a view function used as the shadow DOM template.
     this.attachView(view);
   }
 
+  // @action methods are auto-bound and passed to the view to use as
+  // handlers for inline events.
   @action() increment() {
     this.count++;
   }
 
+  // @effect methods run in response to prop updates (listed as dependencies).
   @effect(["count"]) debugCount(last) {
     console.debug(`this.count updated from ${last.count} to ${this.count}`);
   }
@@ -31,10 +37,8 @@ customElements.define("click-counter", ClickCounter);
 // click-counter.view.js
 import {html} from "viewable";
 
-export const view = (state, actions) => {
-  const {label, count} = state;
-  const {increment} = actions;
-
+// Props passed as first argument, action methods passed second.
+export const view = ({label, count}, {increment}) => {
   return html`
     <button @click="${increment}">${label}</button>
     <p>Clicked ${count} times</p>
@@ -50,11 +54,11 @@ Use tagged template literals (`html`) to break up the template into "parts" that
 ### `attachView`
 Pass a function reference that returns a view.
 
-`attachView` automatically passes a snapshot of `observedAttributes` and [`@observable` properties](#observable) at render time, as well as bound references to any [`@action` methods](#action).
+`attachView` stores the view function as the shadow DOM's source of truth. When any `observedAttributes` or [`@observable` properties](#observable) change, they (along with [`@action` methods](#action)) are passed to the view function, and then the returned result is applied to the shadow DOM.
 
 ## Decorators
 ### `@observable`
-Updates to `@observable` properties re-render the view and re-run corresponding effects, and are usable by both as internal dependencies.
+Updates to `@observable` properties rerender the view and rerun corresponding effects, and are usable by both as internal dependencies.
   
 If used to create a reactive *property*, **only decorate the `set` method**. This will make the view/effects reactive to property mutation and make the property accessible to the view/effects.
 
@@ -92,54 +96,12 @@ Reusable logic:
 * Reactive view fragments: directives (use `lit/directive`)
 * Reactive class behavior: controllers (no solution yet)
 
-#### Controller exploration
-Under consideration is a `ViewableComponent` and then a `HeadlessComponent`. Both would extend a `ReactiveComponent` class that handles most internals—observables, actions, effects, lifecycle—but only a `ViewableComponent` would be able to attach and render a view. A `HeadlessComponent` could then either stand alone, or be able to be registered as a controller for a `ViewableComponent`.
-
-The way this would work is that you would namespace the headless component during registration, and then all of the dependencies upstreamed from the controller would be accessible to the host component.
-
-```js
-// ViewableComponent extends ReactiveComponent with view internals and lifecycle.
-class ComponentA extends ViewableComponent {
-  @observable() baz = "qux";
-
-  // ComponentB is instanced by ComponentA instantiation.
-  @controller() b = new ComponentB(this);
-
-  constructor() {
-    super();
-    // Since attachShadow is a requirement of attachView, we should just
-    // abstract it. A "view" implies a shadow root.
-    this.attachView(view);
-  }
-
-  @effect(["baz", "b foo"]) respond() {
-    console.log(`Component A sees Component A baz`, this.baz); // => "qux"
-    console.log(`Component A sees Component B foo`, this.b.foo); // => "baz"
-  }
-}
-
-// HeadlessComponent runs ReactiveComponent in headless mode.
-class ComponentB extends HeadlessComponent {
-  @observable() foo = "bar";
-
-  @effect.once() mount() {
-    this.foo = "baz";
-  }
-}
-```
-
-This would come with significant considerations and leaves many open questions:
-* Dependency namespacing, especially in the effects array, needs a more idiomatic, non-magical solution.
-* `ComponentA` never runs `ComponentB`'s effects—`ComponentB` runs its own effects in response to internal state changes—however, `ComponentB` state can be a dependency for `ComponentA`'s effects.
-  * For `effect.once()` of headless components, we need to decide whether they should be run from the constructor or `connectedCallback`. If the latter, then we need to make sure `HeadlessComponent` can implement a prototypal `connectedCallback` that the instance will then pass through to the host component's hook.
-* `HeadlessComponent` needs to be able to hook into the lifecycle of the host component because that's what a *controller* is—it's basically able to manipulate any part of the host component but as a safe, namespaced "shadow".
-
 ## Contract
 ### Side effects
 #### `observedAttributes` and `attributeChangedCallback`
 Attributes listed in `observedAttributes` automatically get reflected as internal properties with camelCased names (`my-attr=""` &rarr; `this.myAttr`), synchronized to the DOM with `get`/`setAttribute`.
 
-Reflected properties are then made reactive through `super.attributeChangedCallback`, which triggers a re-render and re-runs effects.
+Reflected properties are then made reactive through `super.attributeChangedCallback`, which triggers a rerender and reruns effects.
 
 #### `connectedCallback`
 `super.connectedCallback` schedules the view's first render.
@@ -149,12 +111,12 @@ Reflected properties are then made reactive through `super.attributeChangedCallb
 
 ### Constraints
 #### Stateless views
-Views are meant to be a stateless blueprint (no `this`). Footguns can easily be introduced by reading/writing `window` or `document`, or using browser APIs directly, so don't do that.
+Views are meant to be a stateless blueprint (no `this`). Footguns can easily be introduced by reading/writing `window` or `document`, or using browser APIs directly.
 
 #### No reactive lifecycle hooks
-Unlike `LitElement`, Viewable does not expose monolithic reactive lifecycle hooks.
+Unlike `LitElement`, Viewable does not expose reactive lifecycle hooks.
 
-For the most part, that's what `@effect` (instead of `updated`) or `@effect.once` (instead of `firstUpdated`) are for—atomic, modularized reactions to state changes.
+For the most part, that's what `@effect` (instead of `updated`) or `@effect.once` (instead of `firstUpdated`) are for—atomic, isolated reactions to state changes.
 
 `@observable({equals})` can be used as a "should mutate this property at all" test, while `@observable({reactive})` can be used as a "should cause a re-render and effect re-run" test (instead of `shouldUpdate`).
 
@@ -175,31 +137,6 @@ Most potential advantages over React and React-like custom element APIs, like At
 * References stored in regular object fields/properties persist across renders (`useRef` N/A).
 
 Keeping views stateless without relying on React's escape hatches maintains many of the advantages of React's functional approach, but without most of the hook fatigue and gotchas.
-
-## Roadmap
-### Alternative renderers
-Currently using [`lit-html`](https://lit.dev/docs/libraries/standalone-templates/)'s renderer under the hood, and re-exporting `html` for authoring views. Using it also lets authors steal its [directives](https://lit.dev/docs/templates/directives/) system.
-
-Lit's renderer is probably the best out there for our purposes, but technically could use [µhtml](https://github.com/WebReflection/uhtml) or possibly even JSX.
-
-Keeping an eye on the [DOM Parts proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/DOM-Parts.md), which, depending on the direction it ultimately goes in, might be a replacement for `lit-html`.
-
-### Typing support
-TBD
-
-### Testing support
-TBD
-
-### Debugging and extensibility
-Considering littering the `Viewable` class and decorator functions with lifecycle hooks after all.
-
-Specific advantages besides custom element classes:
-* you could optionally import/enable a debug library that populates `console.debug` messages via the hooks
-* you could use the hooks to extend functionality and interoperability with other libraries/APIs (or even one's own controllers)
-
-Self-imposed constraints:
-* should be `protected`-like (`__CamelCase__snake_case` convention, mapping to private slots, etc.)
-* purely optional hooks, not actual lifecycle callbacks that are used from within the base class
 
 ## Not documented here
 * **Styling**—constructable stylesheets are recommended though
