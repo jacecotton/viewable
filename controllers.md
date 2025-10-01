@@ -4,7 +4,6 @@ Controllers are objects that hook into a component's reactive lifecycle, for the
 * Controllers can have their own internal state for bookkeeping through private fields, but these are not allowed to be "observable", as that implies a separate and parallel reactive lifecycle to the host. Controllers do not have their own views and do not define their own actions.
 * In other words, the host owns state and lifecycle, while controllers help compose logic and behavior. Controllers are privileged internal collaborators, not autonomous components.
 * If you find yourself needing the host to react to controller state, then that state should be moved up to the host(s).
-* This establishes clear ownership, preventing hidden dependencies, making tracing data flows easier, preventing infinite loops, and improving testability.
 
 ## Basic shape
 ```js
